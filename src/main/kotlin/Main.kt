@@ -401,13 +401,33 @@ fun handleEvent(event: Event) {
     }
 }
 
-fun connectPeer(pubkeyHex: String, hostname: String, port: Int) {
+fun connectPeer(pubkeyHex: String, hostname: String, port: Int, promise: Promise) {
     println("ReactNativeLDK: connecting to peer " + pubkeyHex);
     try {
         nio_peer_handler?.connect(hexStringToByteArray(pubkeyHex), InetSocketAddress(hostname, port), 9000);
+        promise.resolve(true)
     } catch (e: IOException) {
+        promise.reject("connectPeer exception: " + e.message);
     }
 }
+
+fun listPeers(promise: Promise) {
+    if (peer_manager === null) {
+        promise.reject("no peer manager inited");
+        return;
+    }
+    val peer_node_ids: Array<ByteArray> = peer_manager!!.get_peer_node_ids()
+    var json: String = "[";
+    var first = true;
+    peer_node_ids.iterator().forEach {
+        if (!first) json += ",";
+        first = false;
+        json += "\"" + byteArrayToHex(it) + "\"";
+    }
+    json += "]";
+    promise.resolve(json);
+}
+
 
 
 class ClientHandler(client: Socket) {
@@ -419,19 +439,37 @@ class ClientHandler(client: Socket) {
 
     fun run() {
         running = true
-        // Welcome message
-        write(
-            "Welcome to the Hello Lightning server!\n" +
-                    "To exit, type: 'EXIT'.\n" +
-                    "Available commands: 'start', 'connect', 'ldkversion'"
-        )
 
         while (running) {
+            var text: String = "";
             try {
-                val text = reader.nextLine()
+                text = reader.nextLine()
+
                 if (text == "EXIT") {
                     shutdown()
                     continue
+                }
+
+                if (text.indexOf(":") > -1 || text === "") {
+                    // http header. skip it
+                    continue;
+                }
+
+                if (text.startsWith("GET /")) {
+                    println(text);
+                    write("HTTP/1.0 200 OK\n" +
+                            "Content-type: text/html; charset=UTF-8\n")
+                    val text2 = text.split(' ')
+                    val values = text2[1].split('/')
+                    val result = executor.execute(
+                        values[1],
+                        values.elementAtOrNull(2),
+                        values.elementAtOrNull(3),
+                        values.elementAtOrNull(4)
+                    )
+                    write(result)
+                    shutdown();
+                    continue;
                 }
 
                 val values = text.split(' ')
@@ -444,7 +482,7 @@ class ClientHandler(client: Socket) {
                 write(result)
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
-                println("Exception handling command:" + ex.message)
+                println("Exception handling '" + text + "': " + ex.message)
                 shutdown()
             } finally {
 
@@ -468,6 +506,9 @@ class ClientHandler(client: Socket) {
 class Executor {
     fun execute(command: String, arg1: String?, arg2: String?, arg3: String?, arg4: String? = null, arg5: String? = null): String {
         when (command) {
+            "help" -> return "Welcome to the Hello Lightning server!\n" +
+                        "To exit, type: 'EXIT'.\n" +
+                        "Available commands: 'start', 'connectpeer', 'ldkversion', 'help'"
             "start" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
                 println("starting LDK... using " + arg1 + " " + arg2 + " " + arg3)
@@ -494,10 +535,24 @@ class Executor {
                 return "ok";
             }
             "ldkversion" -> return (org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version())
-            "connect" -> {
+            "connectpeer" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
-                connectPeer(arg1, arg2, arg3.toInt())
-                return "ok";
+                var retValue = false;
+                connectPeer(arg1, arg2, arg3.toInt(), object : Promise {
+                    override fun reject(var1: String) { retValue = false }
+                    override fun resolve(var1: String) { }
+                    override fun resolve(var1: Boolean) { retValue = var1; }
+                });
+                return retValue.toString();
+            }
+            "listpeers" -> {
+                var retValue = "";
+                listPeers(object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                });
+                return retValue;
             }
             else -> {
                 return "Something went wrong"
@@ -505,3 +560,10 @@ class Executor {
         }
     }
 }
+
+interface Promise {
+    fun resolve(var1: String)
+    fun resolve(var1: Boolean)
+    fun reject(var1: String)
+}
+
