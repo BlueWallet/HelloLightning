@@ -15,6 +15,7 @@ import java.net.Socket
 import java.nio.charset.Charset
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
@@ -508,7 +509,8 @@ class Executor {
         when (command) {
             "help" -> return "Welcome to the Hello Lightning server!\n" +
                         "To exit, type: 'EXIT'.\n" +
-                        "Available commands: 'start', 'connectpeer', 'ldkversion', 'help'"
+                        "Available commands: 'start', 'stop', 'connectpeer', 'listpeers', 'ldkversion', 'help'"
+            "stop" -> exitProcess(0)
             "start" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
                 println("starting LDK... using " + arg1 + " " + arg2 + " " + arg3)
@@ -540,7 +542,7 @@ class Executor {
                 var retValue = false;
                 connectPeer(arg1, arg2, arg3.toInt(), object : Promise {
                     override fun reject(var1: String) { retValue = false }
-                    override fun resolve(var1: String) { }
+                    override fun resolve(var1: String) {}
                     override fun resolve(var1: Boolean) { retValue = var1; }
                 });
                 return retValue.toString();
