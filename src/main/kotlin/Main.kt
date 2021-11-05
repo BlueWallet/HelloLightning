@@ -4,20 +4,21 @@ import org.ldk.batteries.NioPeerHandler
 import org.ldk.enums.ConfirmationTarget
 import org.ldk.enums.Network
 import org.ldk.structs.*
-import org.ldk.structs.FeeEstimator
 import org.ldk.structs.Filter.FilterInterface
-import org.ldk.structs.Persist
 import org.ldk.structs.Persist.PersistInterface
+import java.io.File
 import java.io.IOException
-import java.net.InetSocketAddress
-
-
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.nio.charset.Charset
 import java.util.*
 import kotlin.concurrent.thread
+
+var homedir = ""
+val prefix_channel_monitor = "channel_monitor_"
+val prefix_channel_manager = "channel_manager"
 
 
 // borrowed from JS:
@@ -49,7 +50,14 @@ var keys_manager: KeysManager? = null;
 var channel_manager_constructor: ChannelManagerConstructor? = null;
 
 fun main(args: Array<String>) {
-    println("Hello Lightning!")
+    println("Hello Lightning!    7")
+    homedir = System.getProperty("user.home") + "/.hellolightning";
+    println("using " + homedir)
+
+    val directory = File(homedir)
+    if (!directory.exists()) {
+        directory.mkdir()
+    }
 
     val server = ServerSocket(8310)
     println("Server is running on port ${server.localPort}")
@@ -61,7 +69,6 @@ fun main(args: Array<String>) {
         thread { ClientHandler(client).run() }
     }
 }
-
 
 fun start(
     entropyHex: String,
@@ -108,10 +115,7 @@ fun start(
         override fun persist_new_channel(id: OutPoint, data: ChannelMonitor): Result_NoneChannelMonitorUpdateErrZ {
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: persist_new_channel")
-//            val params = Arguments.createMap()
-//            params.putString("id", byteArrayToHex(id.to_channel_id()))
-//            params.putString("data", byteArrayToHex(channel_monitor_bytes))
-//            sendEvent(MARKER_PERSIST, params);
+            File(homedir + "/" + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
             return Result_NoneChannelMonitorUpdateErrZ.ok();
         }
 
@@ -122,10 +126,7 @@ fun start(
         ): Result_NoneChannelMonitorUpdateErrZ {
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: update_persisted_channel");
-//            val params = Arguments.createMap()
-//            params.putString("id", byteArrayToHex(id.to_channel_id()))
-//            params.putString("data", byteArrayToHex(channel_monitor_bytes))
-//            sendEvent(MARKER_PERSIST, params);
+            File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
             return Result_NoneChannelMonitorUpdateErrZ.ok();
         }
     })
@@ -138,10 +139,9 @@ fun start(
         }
 
         override fun persist_manager(channel_manager_bytes: ByteArray?) {
+            println("persist_manager");
             if (channel_manager_bytes != null) {
-//                val params = Arguments.createMap()
-//                params.putString("channel_manager_bytes", byteArrayToHex(channel_manager_bytes))
-//                sendEvent(MARKER_PERSIST_MANAGER, params);
+                File("$homedir/$prefix_channel_manager").writeText(byteArrayToHex(channel_manager_bytes));
             }
         }
     }
@@ -422,7 +422,7 @@ class ClientHandler(client: Socket) {
         // Welcome message
         write(
             "Welcome to the Hello Lightning server!\n" +
-                    "To exit, write: 'EXIT'.\n" +
+                    "To exit, type: 'EXIT'.\n" +
                     "Available commands: 'start', 'connect', 'ldkversion'"
         )
 
@@ -444,7 +444,7 @@ class ClientHandler(client: Socket) {
                 write(result)
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
-                println("Exception handling command:" + ex.message);
+                println("Exception handling command:" + ex.message)
                 shutdown()
             } finally {
 
@@ -469,28 +469,38 @@ class Executor {
     fun execute(command: String, arg1: String?, arg2: String?, arg3: String?, arg4: String? = null, arg5: String? = null): String {
         when (command) {
             "start" -> {
-                println("starting LDK...");
-                start(
-                    "00000000000000000000000000000000000000000000000000000000000000f6",
-                    706619,
-                    "0000000000000000000162f379c00029d72b99d2d1ea0fe95b9563c0d2898894",
-                    "",
-                    ""
-                );
-//                connectPeer("037cc5f9f1da20ac0d60e83989729a204a33cc2d8e80438969fadf35c1c5f1233b", "165.227.103.83", 9735)
+                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
+                println("starting LDK... using " + arg1 + " " + arg2 + " " + arg3)
+                var serializedChannelManager = ""
+                var serializedMonitors = ""
+                var monitors = arrayOf<String>()
+
+                File(homedir).walk().forEach {
+                    if (it.name.startsWith(prefix_channel_manager)) {
+                        serializedChannelManager = it.absoluteFile.readText(Charsets.UTF_8)
+                    }
+                    if (it.name.startsWith(prefix_channel_monitor)) {
+                        val serializedMonitor = it.absoluteFile.readText(Charsets.UTF_8);
+                        monitors = monitors.plus(serializedMonitor)
+                    }
+                }
+
+                serializedMonitors = monitors.joinToString(separator = ",")
+
+                println("serializedChannelManager = " + serializedChannelManager)
+                println("serializedMonitors = " + serializedMonitors)
+
+                start(arg1, arg2.toInt(), arg3, serializedChannelManager, serializedMonitors)
                 return "ok";
             }
             "ldkversion" -> return (org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version())
             "connect" -> {
-                if (arg1 != null && arg2 != null && arg3 != null) {
-                    connectPeer(arg1, arg2, arg3.toInt())
-                    return "ok";
-                } else {
-                    return "Something whent wrong"
-                }
+                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
+                connectPeer(arg1, arg2, arg3.toInt())
+                return "ok";
             }
             else -> {
-                return "Something whent wrong"
+                return "Something went wrong"
             }
         }
     }
