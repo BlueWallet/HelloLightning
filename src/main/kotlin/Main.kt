@@ -7,34 +7,13 @@ import org.ldk.structs.*
 import org.ldk.structs.Filter.FilterInterface
 import org.ldk.structs.Persist.PersistInterface
 import java.io.File
-import java.io.IOException
-import java.io.OutputStream
-import java.net.InetSocketAddress
 import java.net.ServerSocket
-import java.net.Socket
-import java.nio.charset.Charset
 import java.util.*
 import kotlin.concurrent.thread
-import kotlin.system.exitProcess
 
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
 val prefix_channel_manager = "channel_manager"
-
-
-// borrowed from JS:
-const val MARKER_LOG = "log";
-const val MARKER_REGISTER_OUTPUT = "marker_register_output";
-const val MARKER_REGISTER_TX = "register_tx";
-const val MARKER_BROADCAST = "broadcast";
-const val MARKER_PERSIST = "persist";
-const val MARKER_PAYMENT_SENT = "payment_sent";
-const val MARKER_PAYMENT_FAILED = "payment_failed";
-const val MARKER_PAYMENT_RECEIVED = "payment_received";
-const val MARKER_PERSIST_MANAGER = "persist_manager";
-const val MARKER_FUNDING_GENERATION_READY = "funding_generation_ready";
-const val MARKER_CHANNEL_CLOSED = "channel_closed";
-//
 
 var feerate_fast = 7500; // estimate fee rate in BTC/kB
 var feerate_medium = 7500; // estimate fee rate in BTC/kB
@@ -51,7 +30,7 @@ var keys_manager: KeysManager? = null;
 var channel_manager_constructor: ChannelManagerConstructor? = null;
 
 fun main(args: Array<String>) {
-    println("Hello Lightning!    7")
+    println("Hello Lightning!")
     homedir = System.getProperty("user.home") + "/.hellolightning";
     println("using " + homedir)
 
@@ -256,29 +235,7 @@ fun start(
 }
 
 
-fun hexStringToByteArray(strArg: String): ByteArray {
-    val HEX_CHARS = "0123456789ABCDEF"
-    val str = strArg.toUpperCase();
 
-    if (str.length % 2 != 0) return hexStringToByteArray("");
-
-    val result = ByteArray(str.length / 2)
-
-    for (i in 0 until str.length step 2) {
-        val firstIndex = HEX_CHARS.indexOf(str[i]);
-        val secondIndex = HEX_CHARS.indexOf(str[i + 1]);
-
-        val octet = firstIndex.shl(4).or(secondIndex)
-        result.set(i.shr(1), octet.toByte())
-    }
-
-    return result
-}
-
-
-fun byteArrayToHex(bytesArg: ByteArray): String {
-    return bytesArg.joinToString("") { String.format("%02X", (it.toInt() and 0xFF)) }.toLowerCase()
-}
 
 
 fun sendEvent(eventName: String) {
@@ -400,172 +357,5 @@ fun handleEvent(event: Event) {
 
 //        this.sendEvent(MARKER_CHANNEL_CLOSED, params);
     }
-}
-
-fun connectPeer(pubkeyHex: String, hostname: String, port: Int, promise: Promise) {
-    println("ReactNativeLDK: connecting to peer " + pubkeyHex);
-    try {
-        nio_peer_handler?.connect(hexStringToByteArray(pubkeyHex), InetSocketAddress(hostname, port), 9000);
-        promise.resolve(true)
-    } catch (e: IOException) {
-        promise.reject("connectPeer exception: " + e.message);
-    }
-}
-
-fun listPeers(promise: Promise) {
-    if (peer_manager === null) {
-        promise.reject("no peer manager inited");
-        return;
-    }
-    val peer_node_ids: Array<ByteArray> = peer_manager!!.get_peer_node_ids()
-    var json: String = "[";
-    var first = true;
-    peer_node_ids.iterator().forEach {
-        if (!first) json += ",";
-        first = false;
-        json += "\"" + byteArrayToHex(it) + "\"";
-    }
-    json += "]";
-    promise.resolve(json);
-}
-
-
-
-class ClientHandler(client: Socket) {
-    private val client: Socket = client
-    private val reader: Scanner = Scanner(client.getInputStream())
-    private val writer: OutputStream = client.getOutputStream()
-    private val executor: Executor = Executor()
-    private var running: Boolean = false
-
-    fun run() {
-        running = true
-
-        while (running) {
-            var text: String = "";
-            try {
-                text = reader.nextLine()
-
-                if (text == "EXIT") {
-                    shutdown()
-                    continue
-                }
-
-                if (text.indexOf(":") > -1 || text === "") {
-                    // http header. skip it
-                    continue;
-                }
-
-                if (text.startsWith("GET /")) {
-                    println(text);
-                    write("HTTP/1.0 200 OK\n" +
-                            "Content-type: text/html; charset=UTF-8\n")
-                    val text2 = text.split(' ')
-                    val values = text2[1].split('/')
-                    val result = executor.execute(
-                        values[1],
-                        values.elementAtOrNull(2),
-                        values.elementAtOrNull(3),
-                        values.elementAtOrNull(4)
-                    )
-                    write(result)
-                    shutdown();
-                    continue;
-                }
-
-                val values = text.split(' ')
-                val result = executor.execute(
-                    values[0],
-                    values.elementAtOrNull(1),
-                    values.elementAtOrNull(2),
-                    values.elementAtOrNull(3)
-                )
-                write(result)
-            } catch (ex: Exception) {
-                // TODO: Implement exception handling
-                println("Exception handling '" + text + "': " + ex.message)
-                shutdown()
-            } finally {
-
-            }
-
-        }
-    }
-
-    private fun write(message: String) {
-        writer.write((message + '\n').toByteArray(Charset.defaultCharset()))
-    }
-
-    private fun shutdown() {
-        running = false
-        client.close()
-        println("${client.inetAddress.hostAddress} closed the connection")
-    }
-
-}
-
-class Executor {
-    fun execute(command: String, arg1: String?, arg2: String?, arg3: String?, arg4: String? = null, arg5: String? = null): String {
-        when (command) {
-            "help" -> return "Welcome to the Hello Lightning server!\n" +
-                        "To exit, type: 'EXIT'.\n" +
-                        "Available commands: 'start', 'stop', 'connectpeer', 'listpeers', 'ldkversion', 'help'"
-            "stop" -> exitProcess(0)
-            "start" -> {
-                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
-                println("starting LDK... using " + arg1 + " " + arg2 + " " + arg3)
-                var serializedChannelManager = ""
-                var serializedMonitors = ""
-                var monitors = arrayOf<String>()
-
-                File(homedir).walk().forEach {
-                    if (it.name.startsWith(prefix_channel_manager)) {
-                        serializedChannelManager = it.absoluteFile.readText(Charsets.UTF_8)
-                    }
-                    if (it.name.startsWith(prefix_channel_monitor)) {
-                        val serializedMonitor = it.absoluteFile.readText(Charsets.UTF_8);
-                        monitors = monitors.plus(serializedMonitor)
-                    }
-                }
-
-                serializedMonitors = monitors.joinToString(separator = ",")
-
-                println("serializedChannelManager = " + serializedChannelManager)
-                println("serializedMonitors = " + serializedMonitors)
-
-                start(arg1, arg2.toInt(), arg3, serializedChannelManager, serializedMonitors)
-                return "ok";
-            }
-            "ldkversion" -> return (org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version())
-            "connectpeer" -> {
-                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
-                var retValue = false;
-                connectPeer(arg1, arg2, arg3.toInt(), object : Promise {
-                    override fun reject(var1: String) { retValue = false }
-                    override fun resolve(var1: String) {}
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                });
-                return retValue.toString();
-            }
-            "listpeers" -> {
-                var retValue = "";
-                listPeers(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                });
-                return retValue;
-            }
-            else -> {
-                return "Something went wrong"
-            }
-        }
-    }
-}
-
-interface Promise {
-    fun resolve(var1: String)
-    fun resolve(var1: Boolean)
-    fun reject(var1: String)
 }
 
