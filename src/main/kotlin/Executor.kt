@@ -72,6 +72,16 @@ class Executor {
                 })
                 return retValue
             }
+            "geteventschannelclosed" ->  {
+                val ret = eventsChannelClosed.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsChannelClosed = arrayOf<String>()
+                return ret
+            }
+            "geteventsfundinggenerationready" ->  {
+                val ret = eventsFundingGenerationReady.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsFundingGenerationReady = arrayOf<String>()
+                return ret
+            }
             "setfeerate" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
                 var retValue = false;
@@ -79,6 +89,66 @@ class Executor {
                     override fun reject(var1: String) {}
                     override fun resolve(var1: String) {}
                     override fun resolve(var1: Boolean) { retValue = var1; }
+                })
+                return retValue.toString();
+            }
+            "openchannelstep1" -> {
+                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                var retValue = "";
+                openChannelStep1(arg1, arg2.toInt(), object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                })
+                return retValue;
+            }
+            "openchannelstep2" -> {
+                if (arg1 == null) return "incorrect arguments"
+                var retValue = "";
+                openChannelStep2(arg1, object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                })
+                return retValue;
+            }
+            "updatebestblock" -> {
+                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                var retValue = false;
+                updateBestBlock(arg1, arg2.toInt(), object : Promise {
+                    override fun resolve(var1: Boolean) { retValue = var1; }
+                    override fun resolve(var1: String) {}
+                    override fun reject(var1: String) {}
+                })
+                return retValue.toString();
+            }
+            "transactionconfirmed" -> {
+                if (arg1 == null || arg2 == null || arg3 == null || arg4 == null) return "incorrect arguments"
+                var retValue = false;
+                transactionConfirmed(arg1, arg2.toInt(), arg3.toInt(), arg4, object : Promise {
+                    override fun resolve(var1: Boolean) { retValue = var1; }
+                    override fun resolve(var1: String) {}
+                    override fun reject(var1: String) {}
+                })
+                return retValue.toString();
+            }
+            "transactionunconfirmed" -> {
+                if (arg1 == null) return "incorrect arguments"
+                var retValue = false;
+                transactionUnconfirmed(arg1, object : Promise {
+                    override fun resolve(var1: Boolean) { retValue = var1; }
+                    override fun resolve(var1: String) {}
+                    override fun reject(var1: String) {}
+                })
+                return retValue.toString();
+            }
+            "setrefundaddressscript" -> {
+                if (arg1 == null) return "incorrect arguments"
+                var retValue = false;
+                setRefundAddressScript(arg1, object : Promise {
+                    override fun resolve(var1: Boolean) { retValue = var1; }
+                    override fun resolve(var1: String) {}
+                    override fun reject(var1: String) {}
                 })
                 return retValue.toString();
             }

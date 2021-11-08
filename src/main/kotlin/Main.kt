@@ -29,6 +29,9 @@ var temporary_channel_id: ByteArray? = null;
 var keys_manager: KeysManager? = null;
 var channel_manager_constructor: ChannelManagerConstructor? = null;
 
+var eventsChannelClosed: Array<String> = arrayOf<String>()
+var eventsFundingGenerationReady: Array<String> = arrayOf<String>()
+
 fun main(args: Array<String>) {
     println("Hello Lightning!")
     homedir = System.getProperty("user.home") + "/.hellolightning";
@@ -310,13 +313,13 @@ fun handleEvent(event: Event) {
         println("ReactNativeLDK: " + "FundingGenerationReady");
         val funding_spk = event.output_script;
         if (funding_spk.size == 34 && funding_spk[0].toInt() == 0 && funding_spk[1].toInt() == 32) {
-//            val params = Arguments.createMap();
-//            params.putString("channel_value_satoshis", event.channel_value_satoshis.toString());
-//            params.putString("output_script", byteArrayToHex(event.output_script));
-//            params.putString("temporary_channel_id", byteArrayToHex(event.temporary_channel_id));
-//            params.putString("user_channel_id", event.user_channel_id.toString());
+            val params = WritableMap()
+            params.putString("channel_value_satoshis", event.channel_value_satoshis.toString());
+            params.putString("output_script", byteArrayToHex(event.output_script));
+            params.putString("temporary_channel_id", byteArrayToHex(event.temporary_channel_id));
+            params.putString("user_channel_id", event.user_channel_id.toString());
             temporary_channel_id = event.temporary_channel_id;
-//            this.sendEvent(MARKER_FUNDING_GENERATION_READY, params);
+            eventsFundingGenerationReady = eventsFundingGenerationReady.plus(params.toString())
         }
     }
 
@@ -326,36 +329,36 @@ fun handleEvent(event: Event) {
 
     if (event is Event.ChannelClosed) {
         println("ReactNativeLDK: " + "ChannelClosed");
-//        val params = Arguments.createMap();
-//        val reason = event.reason;
-//        params.putString("channel_id", byteArrayToHex(event.channel_id));
-//        params.putString("user_channel_id", event.user_channel_id.toString());
+        val params = WritableMap()
+        val reason = event.reason;
+        params.putString("channel_id", byteArrayToHex(event.channel_id));
+        params.putString("user_channel_id", event.user_channel_id.toString());
 
-//        if (reason is ClosureReason.CommitmentTxConfirmed) {
-//            params.putString("reason", "CommitmentTxConfirmed");
-//        }
-//        if (reason is ClosureReason.CooperativeClosure) {
-//            params.putString("reason", "CooperativeClosure");
-//        }
-//        if (reason is ClosureReason.CounterpartyForceClosed) {
-//            params.putString("reason", "CounterpartyForceClosed");
-//            params.putString("text", reason.peer_msg);
-//        }
-//        if (reason is ClosureReason.DisconnectedPeer) {
-//            params.putString("reason", "DisconnectedPeer");
-//        }
-//        if (reason is ClosureReason.HolderForceClosed) {
-//            params.putString("reason", "HolderForceClosed");
-//        }
-//        if (reason is ClosureReason.OutdatedChannelManager) {
-//            params.putString("reason", "OutdatedChannelManager");
-//        }
-//        if (reason is ClosureReason.ProcessingError) {
-//            params.putString("reason", "ProcessingError");
-//            params.putString("text", reason.err);
-//        }
+        if (reason is ClosureReason.CommitmentTxConfirmed) {
+            params.putString("reason", "CommitmentTxConfirmed");
+        }
+        if (reason is ClosureReason.CooperativeClosure) {
+            params.putString("reason", "CooperativeClosure");
+        }
+        if (reason is ClosureReason.CounterpartyForceClosed) {
+            params.putString("reason", "CounterpartyForceClosed");
+            params.putString("text", reason.peer_msg);
+        }
+        if (reason is ClosureReason.DisconnectedPeer) {
+            params.putString("reason", "DisconnectedPeer");
+        }
+        if (reason is ClosureReason.HolderForceClosed) {
+            params.putString("reason", "HolderForceClosed");
+        }
+        if (reason is ClosureReason.OutdatedChannelManager) {
+            params.putString("reason", "OutdatedChannelManager");
+        }
+        if (reason is ClosureReason.ProcessingError) {
+            params.putString("reason", "ProcessingError");
+            params.putString("text", reason.err);
+        }
 
-//        this.sendEvent(MARKER_CHANNEL_CLOSED, params);
+        eventsChannelClosed = eventsChannelClosed.plus(params.toString())
     }
 }
 

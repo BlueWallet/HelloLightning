@@ -28,9 +28,9 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] start
 * [x] stop
 * [ ] transactionConfirmed
-* [ ] transactionUnconfirmed
-* [ ] getRelevantTxids
-* [ ] updateBestBlock
+* [x] transactionUnconfirmed
+* [x] getRelevantTxids
+* [x] updateBestBlock
 * [x] connectPeer
 * [ ] disconnectByNodeId
 * [ ] sendPayment
@@ -39,11 +39,11 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] getNodeId
 * [ ] closeChannelCooperatively
 * [ ] closeChannelForce
-* [ ] openChannelStep1
-* [ ] openChannelStep2
+* [x] openChannelStep1
+* [x] openChannelStep2
 * [ ] listUsableChannels
 * [x] listChannels
-* [ ] setRefundAddressScript
+* [x] setRefundAddressScript
 * [x] setFeerate
 * [ ] getMaturingBalance
 * [ ] getMaturingHeight

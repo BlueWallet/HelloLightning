@@ -5,10 +5,7 @@
  *
  * When adding a new function, don't forget to make an interface for it in Executor.kt
  */
-import org.ldk.structs.ChannelDetails
-import org.ldk.structs.Option_u16Z
-import org.ldk.structs.Option_u32Z
-import org.ldk.structs.Option_u64Z
+import org.ldk.structs.*
 import java.io.IOException
 import java.net.InetSocketAddress
 
@@ -126,4 +123,68 @@ fun listChannels(promise: Promise) {
     }
     jsonArray += "]";
     promise.resolve(jsonArray);
+}
+
+fun openChannelStep1(pubkey: String, channelValue: Int, promise: Promise) {
+    temporary_channel_id = null;
+    val peer_node_pubkey = hexStringToByteArray(pubkey);
+    val create_channel_result = channel_manager?.create_channel(
+        peer_node_pubkey, channelValue.toLong(), 0, 42, null
+    );
+
+    if (create_channel_result !is Result__u832APIErrorZ.Result__u832APIErrorZ_OK) {
+        println("ReactNativeLDK: " + "create_channel_result !is Result__u832APIErrorZ.Result__u832APIErrorZ_OK, = " + create_channel_result);
+        promise.reject("openChannelStep1 failed");
+        return;
+    }
+
+    promise.resolve(byteArrayToHex(create_channel_result.res));
+}
+
+fun openChannelStep2(txhex: String, promise: Promise) {
+    if (temporary_channel_id == null) return promise.reject("openChannelStep2 failed: channel opening is not initiated..?");
+
+    val funding_res = channel_manager?.funding_transaction_generated(temporary_channel_id, hexStringToByteArray(txhex));
+    // funding_transaction_generated should only generate an error if the
+    // transaction didn't meet the required format (or the counterparty already
+    // closed the channel on us):
+    if (funding_res !is Result_NoneAPIErrorZ.Result_NoneAPIErrorZ_OK) {
+        println("ReactNativeLDK: " + "funding_res !is Result_NoneAPIErrorZ_OK");
+        promise.reject("openChannelStep2 failed");
+        return;
+    }
+
+    // At this point LDK will exchange the remaining channel open messages with
+    // the counterparty and, when appropriate, broadcast the funding transaction
+    // provided.
+    // Once it confirms, the channel will be open and available for use (indicated
+    // by its presence in `channel_manager.list_usable_channels()`).
+
+    promise.resolve(true);
+}
+
+fun updateBestBlock(headerHex: String, height: Int, promise: Promise) {
+    channel_manager?.as_Confirm()?.best_block_updated(hexStringToByteArray(headerHex), height);
+    chain_monitor?.as_Confirm()?.best_block_updated(hexStringToByteArray(headerHex), height);
+    promise.resolve(true);
+}
+
+fun transactionConfirmed(headerHex: String, height: Int, txPos: Int, transactionHex: String, promise: Promise) {
+    val tx = TwoTuple_usizeTransactionZ.of(txPos.toLong(), hexStringToByteArray(transactionHex))
+    val txarray = arrayOf(tx);
+    channel_manager?.as_Confirm()?.transactions_confirmed(hexStringToByteArray(headerHex), txarray, height);
+    chain_monitor?.as_Confirm()?.transactions_confirmed(hexStringToByteArray(headerHex), txarray, height);
+
+    promise.resolve(true);
+}
+
+fun transactionUnconfirmed(txidHex: String, promise: Promise) {
+    channel_manager?.as_Confirm()?.transaction_unconfirmed(hexStringToByteArray(txidHex));
+    chain_monitor?.as_Confirm()?.transaction_unconfirmed(hexStringToByteArray(txidHex));
+    promise.resolve(true);
+}
+
+fun setRefundAddressScript(refundAddressScriptHex: String, promise: Promise) {
+    refund_address_script = refundAddressScriptHex;
+    promise.resolve(true);
 }
