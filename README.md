@@ -27,7 +27,7 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 
 * [x] start
 * [x] stop
-* [ ] transactionConfirmed
+* [x] transactionConfirmed
 * [x] transactionUnconfirmed
 * [x] getRelevantTxids
 * [x] updateBestBlock

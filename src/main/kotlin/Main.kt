@@ -7,13 +7,15 @@ import org.ldk.structs.*
 import org.ldk.structs.Filter.FilterInterface
 import org.ldk.structs.Persist.PersistInterface
 import java.io.File
+import java.net.InetSocketAddress
 import java.net.ServerSocket
-import java.util.*
 import kotlin.concurrent.thread
+
 
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
 val prefix_channel_manager = "channel_manager"
+val prefix_network_graph = "network_graph"
 
 var feerate_fast = 7500; // estimate fee rate in BTC/kB
 var feerate_medium = 7500; // estimate fee rate in BTC/kB
@@ -28,6 +30,8 @@ var chain_monitor: ChainMonitor? = null;
 var temporary_channel_id: ByteArray? = null;
 var keys_manager: KeysManager? = null;
 var channel_manager_constructor: ChannelManagerConstructor? = null;
+
+var router: NetworkGraph? = null; // new for HelloLightning
 
 var eventsChannelClosed: Array<String> = arrayOf<String>()
 var eventsFundingGenerationReady: Array<String> = arrayOf<String>()
@@ -95,18 +99,16 @@ fun start(
     // INITIALIZE PERSIST ##########################################################################
     // What it's used for: persisting crucial channel data in a timely manner
     val persister = Persist.new_impl(object : PersistInterface {
-        override fun persist_new_channel(id: OutPoint, data: ChannelMonitor): Result_NoneChannelMonitorUpdateErrZ {
+        override fun persist_new_channel(id: OutPoint?, data: ChannelMonitor?, update_id: MonitorUpdateId?): Result_NoneChannelMonitorUpdateErrZ? {
+            if (id == null || data == null) return null;
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: persist_new_channel")
             File(homedir + "/" + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
             return Result_NoneChannelMonitorUpdateErrZ.ok();
         }
 
-        override fun update_persisted_channel(
-            id: OutPoint,
-            update: ChannelMonitorUpdate,
-            data: ChannelMonitor
-        ): Result_NoneChannelMonitorUpdateErrZ {
+        override fun update_persisted_channel(id: OutPoint?, update: ChannelMonitorUpdate?, data: ChannelMonitor?, update_id: MonitorUpdateId?): Result_NoneChannelMonitorUpdateErrZ? {
+            if (id == null || data == null) return null;
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: update_persisted_channel");
             File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
@@ -189,6 +191,35 @@ fun start(
         channelMonitors = channel_monitor_list.toTypedArray();
     }
 
+
+    // initialize graph sync #########################################################################
+
+    val f = File(homedir + '/' + prefix_network_graph);
+    if (f.exists()) {
+        val serialized_graph = File(homedir + '/' + prefix_network_graph).readText(Charsets.UTF_8)
+        val readResult = NetworkGraph.read(hexStringToByteArray(serialized_graph))
+        if (readResult is Result_NetworkGraphDecodeErrorZ.Result_NetworkGraphDecodeErrorZ_OK) {
+            router = readResult.res
+            println("loaded network graph ok")
+        } else {
+            println("network graph load failed")
+            if (readResult is Result_NetworkGraphDecodeErrorZ.Result_NetworkGraphDecodeErrorZ_Err) {
+                println(readResult.err);
+            }
+            // error, creating from scratch
+            router = NetworkGraph.of(hexStringToByteArray("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f").reversedArray())
+        }
+    } else {
+        // first run, creating from scratch
+        router = NetworkGraph.of(hexStringToByteArray("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f").reversedArray())
+    }
+
+    val route_handler = NetGraphMsgHandler.of(
+        router,
+        Option_AccessZ.none(),
+        logger
+    )
+
     // INITIALIZE THE CHANNELMANAGER ###############################################################
     // What it's used for: managing channel state
 
@@ -203,12 +234,12 @@ fun start(
                 fee_estimator,
                 chain_monitor,
                 tx_filter,
-                null,
+                router,
                 tx_broadcaster,
                 logger
             );
             channel_manager = channel_manager_constructor!!.channel_manager;
-            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister);
+            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister, null);
             peer_manager = channel_manager_constructor!!.peer_manager;
             nio_peer_handler = channel_manager_constructor!!.nio_peer_handler;
         } else {
@@ -221,15 +252,17 @@ fun start(
                 keys_manager?.as_KeysInterface(),
                 fee_estimator,
                 chain_monitor,
-                null,
+                router,
                 tx_broadcaster,
                 logger
             );
             channel_manager = channel_manager_constructor!!.channel_manager;
-            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister);
+            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister, null);
             peer_manager = channel_manager_constructor!!.peer_manager;
             nio_peer_handler = channel_manager_constructor!!.nio_peer_handler;
         }
+
+        nio_peer_handler!!.bind_listener(InetSocketAddress("0.0.0.0", 9735))
 //        promise.resolve("hello ldk");
     } catch (e: Exception) {
         println("ReactNativeLDK: can't start, " + e.message);

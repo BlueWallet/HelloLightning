@@ -55,7 +55,8 @@ class ClientHandler(client: Socket) {
                 write(result)
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
-                println("Exception handling '" + text + "': " + ex.message)
+                println("Exception handling '" + text + "': ")
+                println(ex)
                 shutdown()
             } finally {
 

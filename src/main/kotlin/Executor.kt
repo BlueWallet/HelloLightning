@@ -152,6 +152,10 @@ class Executor {
                 })
                 return retValue.toString();
             }
+            "savenetworkgraph" -> {
+                File("$homedir/$prefix_network_graph").writeText(byteArrayToHex(router!!.write()));
+                return "true"
+            }
             else -> {
                 return "unknown command: $command"
             }
