@@ -153,7 +153,7 @@ class Executor {
                 return retValue.toString();
             }
             "savenetworkgraph" -> {
-                File("$homedir/$prefix_network_graph").writeText(byteArrayToHex(router!!.write()));
+                File("$homedir/$prefix_network_graph").writeBytes(router!!.write());
                 return "true"
             }
             else -> {

@@ -196,8 +196,8 @@ fun start(
 
     val f = File(homedir + '/' + prefix_network_graph);
     if (f.exists()) {
-        val serialized_graph = File(homedir + '/' + prefix_network_graph).readText(Charsets.UTF_8)
-        val readResult = NetworkGraph.read(hexStringToByteArray(serialized_graph))
+        val serialized_graph = File(homedir + '/' + prefix_network_graph).readBytes()
+        val readResult = NetworkGraph.read(serialized_graph)
         if (readResult is Result_NetworkGraphDecodeErrorZ.Result_NetworkGraphDecodeErrorZ_OK) {
             router = readResult.res
             println("loaded network graph ok")

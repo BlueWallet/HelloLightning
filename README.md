@@ -47,6 +47,20 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] setFeerate
 * [ ] getMaturingBalance
 * [ ] getMaturingHeight
+* [x] savenetworkgraph
+* [x] geteventsfundinggenerationready
+* [x] geteventschannelclosed
+* [x] ldkversion
+* [x] help
+
+* [ ] register_tx event
+* [ ] register_output event
+* [ ] tx_broadcaster event
+* [ ] payment sent event
+* [ ] payment failed event
+* [ ] payment received event
+* [ ] Event.PaymentForwarded
+* [ ] Event.ChannelClosed
 
 ## License
 
