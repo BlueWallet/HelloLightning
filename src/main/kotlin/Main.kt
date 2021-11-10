@@ -244,9 +244,17 @@ fun start(
             nio_peer_handler = channel_manager_constructor!!.nio_peer_handler;
         } else {
             // fresh start
+
+            // this is gona be fee policy for __incoming__ channels. they are set upfront globally:
+            val uc = UserConfig.with_default()
+            val newChannelConfig = ChannelConfig.with_default()
+                newChannelConfig.set_forwarding_fee_proportional_millionths(10000);
+                newChannelConfig.set_forwarding_fee_base_msat(1000);
+            uc.set_channel_options(newChannelConfig);
+            //
             channel_manager_constructor = ChannelManagerConstructor(
                 Network.LDKNetwork_Bitcoin,
-                UserConfig.with_default(),
+                uc,
                 hexStringToByteArray(blockchainTipHashHex),
                 blockchainTipHeight,
                 keys_manager?.as_KeysInterface(),
@@ -271,12 +279,30 @@ fun start(
 }
 
 
+fun openChannelStep1(pubkey: String, channelValue: Int, promise: Promise) {
+    temporary_channel_id = null;
+    val peer_node_pubkey = hexStringToByteArray(pubkey);
+    val uc = UserConfig.with_default()
+    val newChannelConfig = ChannelConfig.with_default()
+        newChannelConfig.set_announced_channel(true);
+        newChannelConfig.set_forwarding_fee_proportional_millionths(10000);
+        newChannelConfig.set_forwarding_fee_base_msat(1000);
+    uc.set_channel_options(newChannelConfig);
 
+    val create_channel_result = channel_manager?.create_channel(
+        peer_node_pubkey, channelValue.toLong(), 0, 42, uc
+    );
 
+    if (create_channel_result !is Result__u832APIErrorZ.Result__u832APIErrorZ_OK) {
+        println("ReactNativeLDK: " + "create_channel_result !is Result__u832APIErrorZ.Result__u832APIErrorZ_OK, = " + create_channel_result);
+        promise.reject("openChannelStep1 failed");
+        return;
+    }
 
-fun sendEvent(eventName: String) {
-    // nop
+    promise.resolve(byteArrayToHex(create_channel_result.res));
 }
+
+
 
 
 fun handleEvent(event: Event) {

@@ -61,6 +61,7 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [ ] payment received event
 * [ ] Event.PaymentForwarded
 * [ ] Event.ChannelClosed
+* [ ] open channel - default un-anounced channel..?
 
 ## License
 

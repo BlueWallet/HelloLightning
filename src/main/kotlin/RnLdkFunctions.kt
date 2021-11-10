@@ -125,21 +125,6 @@ fun listChannels(promise: Promise) {
     promise.resolve(jsonArray);
 }
 
-fun openChannelStep1(pubkey: String, channelValue: Int, promise: Promise) {
-    temporary_channel_id = null;
-    val peer_node_pubkey = hexStringToByteArray(pubkey);
-    val create_channel_result = channel_manager?.create_channel(
-        peer_node_pubkey, channelValue.toLong(), 0, 42, null
-    );
-
-    if (create_channel_result !is Result__u832APIErrorZ.Result__u832APIErrorZ_OK) {
-        println("ReactNativeLDK: " + "create_channel_result !is Result__u832APIErrorZ.Result__u832APIErrorZ_OK, = " + create_channel_result);
-        promise.reject("openChannelStep1 failed");
-        return;
-    }
-
-    promise.resolve(byteArrayToHex(create_channel_result.res));
-}
 
 fun openChannelStep2(txhex: String, promise: Promise) {
     if (temporary_channel_id == null) return promise.reject("openChannelStep2 failed: channel opening is not initiated..?");
