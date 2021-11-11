@@ -32,6 +32,7 @@ var keys_manager: KeysManager? = null;
 var channel_manager_constructor: ChannelManagerConstructor? = null;
 
 var router: NetworkGraph? = null; // new for HelloLightning
+var tx_filter: Filter? = null; // new for HelloLightning
 
 var eventsChannelClosed: Array<String> = arrayOf<String>()
 var eventsFundingGenerationReady: Array<String> = arrayOf<String>()
@@ -144,7 +145,7 @@ fun start(
 
     // Filter allows LDK to let you know what transactions you should filter blocks for. This is
     // useful if you pre-filter blocks or use compact filters. Otherwise, LDK will need full blocks.
-    val tx_filter: Filter? = Filter.new_impl(object : FilterInterface {
+    tx_filter = Filter.new_impl(object : FilterInterface {
         override fun register_tx(txid: ByteArray, script_pubkey: ByteArray) {
             println("ReactNativeLDK: register_tx");
             val params = WritableMap()
