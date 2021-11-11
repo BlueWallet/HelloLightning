@@ -110,7 +110,7 @@ fun start(
             if (id == null || data == null) return null;
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: persist_new_channel")
-            File(homedir + "/" + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
+            File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
             return Result_NoneChannelMonitorUpdateErrZ.ok();
         }
 
@@ -258,6 +258,9 @@ fun start(
                 newChannelConfig.set_forwarding_fee_proportional_millionths(10000);
                 newChannelConfig.set_forwarding_fee_base_msat(1000);
             uc.set_channel_options(newChannelConfig);
+            val newLim = ChannelHandshakeLimits.with_default()
+                newLim.set_force_announced_channel_preference(false)
+            uc.set_peer_channel_config_limits(newLim)
             //
             channel_manager_constructor = ChannelManagerConstructor(
                 Network.LDKNetwork_Bitcoin,

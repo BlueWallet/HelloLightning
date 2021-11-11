@@ -196,3 +196,24 @@ fun addInvoice(amtMsat: Int, description: String, promise: Promise) {
         promise.reject("addInvoice failed");
     }
 }
+
+fun getRelevantTxids(promise: Promise) {
+    if (channel_manager === null) {
+        promise.reject("Channel manager is not initted");
+        return;
+    }
+    var first = true;
+    var json: String = "[";
+    channel_manager?.as_Confirm()?._relevant_txids?.iterator()?.forEach {
+        if (!first) json += ",";
+        first = false;
+        json += "\"" + byteArrayToHex(it.reversedArray()) + "\"";
+    }
+    chain_monitor?.as_Confirm()?._relevant_txids?.iterator()?.forEach {
+        if (!first) json += ",";
+        first = false;
+        json += "\"" + byteArrayToHex(it.reversedArray()) + "\"";
+    }
+    json += "]";
+    promise.resolve(json);
+}

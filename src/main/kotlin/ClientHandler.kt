@@ -38,7 +38,8 @@ class ClientHandler(client: Socket) {
                         values[1],
                         values.elementAtOrNull(2),
                         values.elementAtOrNull(3),
-                        values.elementAtOrNull(4)
+                        values.elementAtOrNull(4),
+                        values.elementAtOrNull(5)
                     )
                     write(result)
                     shutdown();
@@ -50,7 +51,8 @@ class ClientHandler(client: Socket) {
                     values[0],
                     values.elementAtOrNull(1),
                     values.elementAtOrNull(2),
-                    values.elementAtOrNull(3)
+                    values.elementAtOrNull(3),
+                    values.elementAtOrNull(4),
                 )
                 write(result)
             } catch (ex: Exception) {

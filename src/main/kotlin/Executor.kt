@@ -92,14 +92,14 @@ class Executor {
                 eventsFundingGenerationReady = arrayOf<String>()
                 return ret
             }
-            "geteventsregistertx" ->  {
+            "geteventsregistertx" -> {
                 val ret = eventsRegisterTx.joinToString(separator = ",", prefix = "[", postfix = "]")
-                eventsRegisterTx = arrayOf<String>()
+                // NOT cleaning it up
                 return ret
             }
-            "geteventsregisteroutput" ->  {
+            "geteventsregisteroutput" -> {
                 val ret = eventsRegisterOutput.joinToString(separator = ",", prefix = "[", postfix = "]")
-                eventsRegisterOutput = arrayOf<String>()
+                // NOT cleaning it up
                 return ret
             }
             "geteventstxbroadcast" ->  {
@@ -186,6 +186,15 @@ class Executor {
                     override fun reject(var1: String) {}
                 })
                 return retValue.toString();
+            }
+            "getrelevanttxids" -> {
+                var retValue = ""
+                getRelevantTxids(object : Promise {
+                    override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: String) {  retValue = var1 }
+                    override fun reject(var1: String) {  retValue = var1 }
+                })
+                return retValue
             }
             "setrefundaddressscript" -> {
                 if (arg1 == null) return "incorrect arguments"
