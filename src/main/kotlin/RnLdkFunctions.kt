@@ -5,6 +5,7 @@
  *
  * When adding a new function, don't forget to make an interface for it in Executor.kt
  */
+import org.ldk.enums.Currency
 import org.ldk.structs.*
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -172,4 +173,26 @@ fun transactionUnconfirmed(txidHex: String, promise: Promise) {
 fun setRefundAddressScript(refundAddressScriptHex: String, promise: Promise) {
     refund_address_script = refundAddressScriptHex;
     promise.resolve(true);
+}
+
+fun addInvoice(amtMsat: Int, description: String, promise: Promise) {
+    var amountStruct = Option_u64Z.none();
+    if (amtMsat != 0) {
+        amountStruct = Option_u64Z.some(amtMsat.toLong());
+    }
+
+    val invoice = UtilMethods.create_invoice_from_channelmanager(
+        channel_manager,
+        keys_manager?.as_KeysInterface(),
+        Currency.LDKCurrency_Bitcoin,
+        amountStruct,
+        description
+    );
+
+    if (invoice is Result_InvoiceSignOrCreationErrorZ.Result_InvoiceSignOrCreationErrorZ_OK) {
+        println("Got invoice: " + invoice.res.to_str())
+        promise.resolve(invoice.res.to_str());
+    } else {
+        promise.reject("addInvoice failed");
+    }
 }

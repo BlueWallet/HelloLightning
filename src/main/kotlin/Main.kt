@@ -35,6 +35,13 @@ var router: NetworkGraph? = null; // new for HelloLightning
 
 var eventsChannelClosed: Array<String> = arrayOf<String>()
 var eventsFundingGenerationReady: Array<String> = arrayOf<String>()
+var eventsRegisterTx: Array<String> = arrayOf<String>()
+var eventsRegisterOutput: Array<String> = arrayOf<String>()
+var eventsTxBroadcast: Array<String> = arrayOf<String>()
+var eventsPaymentSent: Array<String> = arrayOf<String>()
+var eventsPaymentPathFailed: Array<String> = arrayOf<String>()
+var eventsPaymentReceived: Array<String> = arrayOf<String>()
+var eventsPaymentForwarded: Array<String> = arrayOf<String>()
 
 fun main(args: Array<String>) {
     println("Hello Lightning!")
@@ -91,9 +98,9 @@ fun start(
     // What it's used for: broadcasting various lightning transactions
     val tx_broadcaster = BroadcasterInterface.new_impl { tx ->
         println("ReactNativeLDK: " + "broadcaster sends an event asking to broadcast some txhex...")
-//        val params = Arguments.createMap()
-//        params.putString("txhex", byteArrayToHex(tx))
-//        sendEvent(MARKER_BROADCAST, params)
+        val params = WritableMap();
+        params.putString("txhex", byteArrayToHex(tx))
+        eventsTxBroadcast = eventsTxBroadcast.plus(params.toString())
     }
 
     // INITIALIZE PERSIST ##########################################################################
@@ -140,22 +147,22 @@ fun start(
     val tx_filter: Filter? = Filter.new_impl(object : FilterInterface {
         override fun register_tx(txid: ByteArray, script_pubkey: ByteArray) {
             println("ReactNativeLDK: register_tx");
-//            val params = Arguments.createMap()
-//            params.putString("txid", byteArrayToHex(txid))
-//            params.putString("script_pubkey", byteArrayToHex(script_pubkey))
-//            sendEvent(MARKER_REGISTER_TX, params);
+            val params = WritableMap()
+            params.putString("txid", byteArrayToHex(txid))
+            params.putString("script_pubkey", byteArrayToHex(script_pubkey))
+            eventsRegisterTx = eventsRegisterTx.plus(params.toString())
         }
 
         override fun register_output(output: WatchedOutput): Option_C2Tuple_usizeTransactionZZ {
             println("ReactNativeLDK: register_output");
-//            val params = Arguments.createMap()
-//            val blockHash = output._block_hash;
-//            if (blockHash is ByteArray) {
-//                params.putString("block_hash", byteArrayToHex(blockHash))
-//            }
-//            params.putString("index", output._outpoint._index.toString())
-//            params.putString("script_pubkey", byteArrayToHex(output._script_pubkey))
-//            sendEvent(MARKER_REGISTER_OUTPUT, params);
+            val params = WritableMap()
+            val blockHash = output._block_hash;
+            if (blockHash is ByteArray) {
+                params.putString("block_hash", byteArrayToHex(blockHash))
+            }
+            params.putString("index", output._outpoint._index.toString())
+            params.putString("script_pubkey", byteArrayToHex(output._script_pubkey))
+            eventsRegisterOutput = eventsRegisterOutput.plus(params.toString())
             return Option_C2Tuple_usizeTransactionZZ.none();
         }
     })
@@ -325,17 +332,17 @@ fun handleEvent(event: Event) {
 
     if (event is Event.PaymentSent) {
         println("ReactNativeLDK: " + "payment sent, preimage: " + byteArrayToHex((event as Event.PaymentSent).payment_preimage));
-//        val params = Arguments.createMap();
-//        params.putString("payment_preimage", byteArrayToHex((event as Event.PaymentSent).payment_preimage));
-//        this.sendEvent(MARKER_PAYMENT_SENT, params);
+        val params = WritableMap()
+        params.putString("payment_preimage", byteArrayToHex((event as Event.PaymentSent).payment_preimage));
+        eventsPaymentSent = eventsPaymentSent.plus(params.toString())
     }
 
     if (event is Event.PaymentPathFailed) {
         println("ReactNativeLDK: " + "payment failed, payment_hash: " + byteArrayToHex(event.payment_hash));
-//        val params = Arguments.createMap();
-//        params.putString("payment_hash", byteArrayToHex(event.payment_hash));
-//        params.putString("rejected_by_dest", event.rejected_by_dest.toString());
-//        this.sendEvent(MARKER_PAYMENT_FAILED, params);
+        val params = WritableMap()
+        params.putString("payment_hash", byteArrayToHex(event.payment_hash));
+        params.putString("rejected_by_dest", event.rejected_by_dest.toString());
+        eventsPaymentPathFailed = eventsPaymentPathFailed.plus(params.toString())
     }
 
     if (event is Event.PaymentReceived) {
@@ -352,16 +359,16 @@ fun handleEvent(event: Event) {
             channel_manager?.claim_funds(paymentPreimage);
         }
 
-//        val params = Arguments.createMap();
-//        params.putString("payment_hash", byteArrayToHex(event.payment_hash));
-//        if (paymentSecret != null) {
-//            params.putString("payment_secret", byteArrayToHex(paymentSecret));
-//        }
-//        if (paymentPreimage != null) {
-//            params.putString("payment_preimage", byteArrayToHex(paymentPreimage));
-//        }
-//        params.putString("amt", event.amt.toString());
-//        this.sendEvent(MARKER_PAYMENT_RECEIVED, params);
+        val params = WritableMap()
+        params.putString("payment_hash", byteArrayToHex(event.payment_hash));
+        if (paymentSecret != null) {
+            params.putString("payment_secret", byteArrayToHex(paymentSecret));
+        }
+        if (paymentPreimage != null) {
+            params.putString("payment_preimage", byteArrayToHex(paymentPreimage));
+        }
+        params.putString("amt", event.amt.toString());
+        eventsPaymentReceived = eventsPaymentReceived.plus(params.toString())
     }
 
     if (event is Event.PendingHTLCsForwardable) {
@@ -383,7 +390,10 @@ fun handleEvent(event: Event) {
     }
 
     if (event is Event.PaymentForwarded) {
-        // todo. one day, when ldk is a full routing node...
+        val params = WritableMap()
+        params.putString("fee_earned_msat", event.fee_earned_msat.toString())
+        if (event.claim_from_onchain_tx) params.putString("claim_from_onchain_tx", "1")
+        eventsPaymentForwarded = eventsPaymentForwarded.plus(params.toString())
     }
 
     if (event is Event.ChannelClosed) {

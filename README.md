@@ -34,7 +34,7 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] connectPeer
 * [ ] disconnectByNodeId
 * [ ] sendPayment
-* [ ] addInvoice
+* [x] addInvoice
 * [x] listPeers
 * [x] getNodeId
 * [ ] closeChannelCooperatively
@@ -52,15 +52,13 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] geteventschannelclosed
 * [x] ldkversion
 * [x] help
-
-* [ ] register_tx event
-* [ ] register_output event
-* [ ] tx_broadcaster event
-* [ ] payment sent event
-* [ ] payment failed event
-* [ ] payment received event
-* [ ] Event.PaymentForwarded
-* [ ] Event.ChannelClosed
+* [x] geteventsregistertx
+* [x] geteventsregisteroutput
+* [x] geteventstxbroadcast
+* [x] geteventspaymentsent
+* [x] geteventspaymentpathfailed
+* [x] geteventspaymentreceived
+* [x] geteventspaymentforwarded
 * [ ] open channel - default un-anounced channel..?
 
 ## License

@@ -45,6 +45,16 @@ class Executor {
                 });
                 return retValue.toString();
             }
+            "addinvoice" -> {
+                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                var retValue = ""
+                addInvoice(arg1.toInt(), arg2, object : Promise {
+                    override fun reject(var1: String) { retValue = var1 }
+                    override fun resolve(var1: String) { retValue = var1 }
+                    override fun resolve(var1: Boolean) {}
+                });
+                return retValue
+            }
             "listpeers" -> {
                 var retValue = "";
                 listPeers(object : Promise {
@@ -80,6 +90,41 @@ class Executor {
             "geteventsfundinggenerationready" ->  {
                 val ret = eventsFundingGenerationReady.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsFundingGenerationReady = arrayOf<String>()
+                return ret
+            }
+            "geteventsregistertx" ->  {
+                val ret = eventsRegisterTx.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsRegisterTx = arrayOf<String>()
+                return ret
+            }
+            "geteventsregisteroutput" ->  {
+                val ret = eventsRegisterOutput.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsRegisterOutput = arrayOf<String>()
+                return ret
+            }
+            "geteventstxbroadcast" ->  {
+                val ret = eventsTxBroadcast.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsTxBroadcast = arrayOf<String>()
+                return ret
+            }
+            "geteventspaymentsent" ->  {
+                val ret = eventsPaymentSent.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsPaymentSent = arrayOf<String>()
+                return ret
+            }
+            "geteventspaymentpathfailed" ->  {
+                val ret = eventsPaymentPathFailed.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsPaymentPathFailed = arrayOf<String>()
+                return ret
+            }
+            "geteventspaymentreceived" ->  {
+                val ret = eventsPaymentReceived.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsPaymentReceived = arrayOf<String>()
+                return ret
+            }
+            "geteventspaymentforwarded" ->  {
+                val ret = eventsPaymentForwarded.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsPaymentForwarded = arrayOf<String>()
                 return ret
             }
             "setfeerate" -> {
