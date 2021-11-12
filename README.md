@@ -33,7 +33,7 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] updateBestBlock
 * [x] connectPeer
 * [ ] disconnectByNodeId
-* [ ] sendPayment
+* [x] sendPayment
 * [x] addInvoice
 * [x] listPeers
 * [x] getNodeId

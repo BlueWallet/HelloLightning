@@ -137,6 +137,16 @@ class Executor {
                 })
                 return retValue.toString();
             }
+            "payinvoice" -> {
+                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                var retValue = "";
+                payInvoice(arg1, arg2.toInt(), object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                })
+                return retValue;
+            }
             "openchannelstep1" -> {
                 if (arg1 == null || arg2 == null) return "incorrect arguments"
                 var retValue = "";

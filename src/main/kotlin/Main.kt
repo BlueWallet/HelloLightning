@@ -6,9 +6,12 @@ import org.ldk.enums.Network
 import org.ldk.structs.*
 import org.ldk.structs.Filter.FilterInterface
 import org.ldk.structs.Persist.PersistInterface
+import org.ldk.structs.Result_InvoiceNoneZ.Result_InvoiceNoneZ_OK
+import org.ldk.structs.Result_PaymentIdPaymentErrorZ.Result_PaymentIdPaymentErrorZ_OK
 import java.io.File
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.util.*
 import kotlin.concurrent.thread
 
 
@@ -204,6 +207,7 @@ fun start(
 
     val f = File(homedir + '/' + prefix_network_graph);
     if (f.exists()) {
+        println("loading network graph...")
         val serialized_graph = File(homedir + '/' + prefix_network_graph).readBytes()
         val readResult = NetworkGraph.read(serialized_graph)
         if (readResult is Result_NetworkGraphDecodeErrorZ.Result_NetworkGraphDecodeErrorZ_OK) {
@@ -232,6 +236,8 @@ fun start(
     // What it's used for: managing channel state
 
 
+    val scorer = LockableScore.of(Scorer.with_default().as_Score())
+
     try {
         if (serializedChannelManagerHex != "") {
             // loading from disk
@@ -247,7 +253,7 @@ fun start(
                 logger
             );
             channel_manager = channel_manager_constructor!!.channel_manager;
-            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister, null);
+            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister, scorer);
             peer_manager = channel_manager_constructor!!.peer_manager;
             nio_peer_handler = channel_manager_constructor!!.nio_peer_handler;
         } else {
@@ -276,7 +282,7 @@ fun start(
                 logger
             );
             channel_manager = channel_manager_constructor!!.channel_manager;
-            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister, null);
+            channel_manager_constructor!!.chain_sync_completed(channel_manager_persister, scorer);
             peer_manager = channel_manager_constructor!!.peer_manager;
             nio_peer_handler = channel_manager_constructor!!.nio_peer_handler;
         }
@@ -435,3 +441,25 @@ fun handleEvent(event: Event) {
     }
 }
 
+
+
+fun payInvoice(bolt11: String, amtSat: Int, promise: Promise) {
+    if (channel_manager_constructor?.payer == null) return promise.reject("payer is null");
+
+    val parsedInvoice = Invoice.from_str(bolt11)
+    if (parsedInvoice !is Result_InvoiceNoneZ_OK) {
+        return promise.reject("cant parse invoice");
+    }
+
+    val sendRes = if (amtSat != 0) {
+        channel_manager_constructor!!.payer!!.pay_zero_value_invoice(parsedInvoice.res, amtSat.toLong() * 1000)
+    } else {
+        channel_manager_constructor!!.payer!!.pay_invoice(parsedInvoice.res)
+    }
+
+    if (sendRes !is Result_PaymentIdPaymentErrorZ_OK) {
+        return promise.reject("send failed");
+    }
+
+    promise.resolve("true");
+}
