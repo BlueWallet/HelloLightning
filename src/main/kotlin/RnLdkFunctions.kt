@@ -126,6 +126,31 @@ fun listChannels(promise: Promise) {
     promise.resolve(jsonArray);
 }
 
+fun listUsableChannels(promise: Promise) {
+    if (channel_manager == null) {
+        promise.reject("Channel manager not inited");
+        return;
+    }
+
+    val channels = channel_manager?.list_usable_channels();
+
+    var jsonArray = "[";
+
+    var first = true;
+    channels?.iterator()?.forEach {
+        val channelObject = channel2channelObject(it);
+
+        if (!first) jsonArray += ",";
+        jsonArray += channelObject;
+        first = false;
+    }
+
+    jsonArray += "]";
+
+
+    promise.resolve(jsonArray);
+}
+
 
 fun openChannelStep2(txhex: String, promise: Promise) {
     if (temporary_channel_id == null) return promise.reject("openChannelStep2 failed: channel opening is not initiated..?");
@@ -216,4 +241,95 @@ fun getRelevantTxids(promise: Promise) {
     }
     json += "]";
     promise.resolve(json);
+}
+
+fun disconnectByNodeId(pubkeyHex: String, promise: Promise) {
+    println("ReactNativeLDK: disconnecting peer " + pubkeyHex);
+    try {
+        peer_manager?.disconnect_by_node_id(hexStringToByteArray(pubkeyHex), false);
+        promise.resolve(true);
+    } catch (e: IOException) {
+        promise.reject("disconnect_by_node_id exception: " + e.message);
+    }
+}
+
+fun getMaturingBalance(promise: Promise) {
+    var totalSat: Int = 0;
+    val balances = chain_monitor?.get_claimable_balances(channel_manager!!.list_channels());
+    balances!!.iterator().forEach {
+        if (it is Balance.ClaimableAwaitingConfirmations) {
+            println("ReactNativeLDK: ClaimableAwaitingConfirmations = " + it.claimable_amount_satoshis + " " + it.confirmation_height);
+            totalSat += it.claimable_amount_satoshis.toInt();
+        }
+
+        if (it is Balance.ClaimableOnChannelClose) {
+            println("ReactNativeLDK: ClaimableOnChannelClose = " + it.claimable_amount_satoshis);
+            totalSat += it.claimable_amount_satoshis.toInt();
+        }
+
+        if (it is Balance.ContentiousClaimable) {
+            println("ReactNativeLDK: ContentiousClaimable = " + it.claimable_amount_satoshis + " " + it.timeout_height);
+        }
+
+        if (it is Balance.MaybeClaimableHTLCAwaitingTimeout) {
+            println("ReactNativeLDK: MaybeClaimableHTLCAwaitingTimeout = " + it.claimable_amount_satoshis + " " + it.claimable_height);
+        }
+    }
+
+    promise.resolve(totalSat);
+}
+
+fun getMaturingHeight(promise: Promise) {
+    var maxHeight: Int = 0;
+    val balances = chain_monitor?.get_claimable_balances(channel_manager!!.list_channels());
+    balances!!.iterator().forEach {
+        if (it is Balance.ClaimableAwaitingConfirmations) {
+            println("ReactNativeLDK: ClaimableAwaitingConfirmations = " + it.claimable_amount_satoshis + " " + it.confirmation_height);
+            maxHeight = when (it.confirmation_height > maxHeight) {
+                true -> it.confirmation_height
+                false -> maxHeight
+            }
+        }
+
+        if (it is Balance.ClaimableOnChannelClose) {
+            println("ReactNativeLDK: ClaimableOnChannelClose = " + it.claimable_amount_satoshis);
+        }
+
+        if (it is Balance.ContentiousClaimable) {
+            println("ReactNativeLDK: ContentiousClaimable = " + it.claimable_amount_satoshis + " " + it.timeout_height);
+            maxHeight = when (it.timeout_height > maxHeight) {
+                true -> it.timeout_height
+                false -> maxHeight
+            }
+        }
+
+        if (it is Balance.MaybeClaimableHTLCAwaitingTimeout) {
+            println("ReactNativeLDK: MaybeClaimableHTLCAwaitingTimeout = " + it.claimable_amount_satoshis + " " + it.claimable_height);
+            maxHeight = when (it.claimable_height > maxHeight) {
+                true -> it.claimable_height
+                false -> maxHeight
+            }
+        }
+    }
+
+    promise.resolve(maxHeight);
+}
+
+
+fun closeChannelCooperatively(channelIdHex: String, promise: Promise) {
+    val close_result = channel_manager?.close_channel(hexStringToByteArray(channelIdHex))
+    if (close_result is Result_NoneAPIErrorZ.Result_NoneAPIErrorZ_OK) {
+        promise.resolve(true);
+    } else {
+        promise.reject("closeChannelCooperatively failed");
+    }
+}
+
+fun closeChannelForce(channelIdHex: String, promise: Promise) {
+    val close_result = channel_manager?.force_close_channel(hexStringToByteArray(channelIdHex));
+    if (close_result is Result_NoneAPIErrorZ.Result_NoneAPIErrorZ_OK) {
+        promise.resolve(true);
+    } else {
+        promise.reject("closeChannelForce failed");
+    }
 }

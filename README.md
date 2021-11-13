@@ -32,21 +32,21 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] getRelevantTxids
 * [x] updateBestBlock
 * [x] connectPeer
-* [ ] disconnectByNodeId
+* [x] disconnectByNodeId
 * [x] sendPayment
 * [x] addInvoice
 * [x] listPeers
 * [x] getNodeId
-* [ ] closeChannelCooperatively
-* [ ] closeChannelForce
+* [x] closeChannelCooperatively
+* [x] closeChannelForce
 * [x] openChannelStep1
 * [x] openChannelStep2
-* [ ] listUsableChannels
+* [x] listUsableChannels
 * [x] listChannels
 * [x] setRefundAddressScript
 * [x] setFeerate
-* [ ] getMaturingBalance
-* [ ] getMaturingHeight
+* [x] getMaturingBalance
+* [x] getMaturingHeight
 * [x] savenetworkgraph
 * [x] geteventsfundinggenerationready
 * [x] geteventschannelclosed
@@ -59,7 +59,6 @@ managing onchain coins to open channels (via PSBT), keeping a list of peers to k
 * [x] geteventspaymentpathfailed
 * [x] geteventspaymentreceived
 * [x] geteventspaymentforwarded
-* [ ] open channel - default un-anounced channel..?
 
 ## License
 

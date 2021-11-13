@@ -42,6 +42,7 @@ class Executor {
                     override fun reject(var1: String) { retValue = false }
                     override fun resolve(var1: String) {}
                     override fun resolve(var1: Boolean) { retValue = var1; }
+                    override fun resolve(var1: Int) {}
                 });
                 return retValue.toString();
             }
@@ -52,6 +53,7 @@ class Executor {
                     override fun reject(var1: String) { retValue = var1 }
                     override fun resolve(var1: String) { retValue = var1 }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
                 });
                 return retValue
             }
@@ -61,6 +63,7 @@ class Executor {
                     override fun reject(var1: String) { retValue = var1; }
                     override fun resolve(var1: String) { retValue = var1; }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
                 });
                 return retValue;
             }
@@ -70,6 +73,7 @@ class Executor {
                     override fun reject(var1: String) { retValue = var1; }
                     override fun resolve(var1: String) { retValue = var1; }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue
             }
@@ -79,6 +83,37 @@ class Executor {
                     override fun reject(var1: String) { retValue = var1; }
                     override fun resolve(var1: String) { retValue = var1; }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
+                })
+                return retValue
+            }
+            "listusablechannels" -> {
+                var retValue = "";
+                listUsableChannels(object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
+                })
+                return retValue
+            }
+            "getmaturingbalance" -> {
+                var retValue = "";
+                getMaturingBalance(object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) { retValue = var1.toString(); }
+                })
+                return retValue
+            }
+            "getmaturingheight" -> {
+                var retValue = "";
+                getMaturingHeight(object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) { retValue = var1.toString(); }
                 })
                 return retValue
             }
@@ -134,6 +169,7 @@ class Executor {
                     override fun reject(var1: String) {}
                     override fun resolve(var1: String) {}
                     override fun resolve(var1: Boolean) { retValue = var1; }
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue.toString();
             }
@@ -144,16 +180,18 @@ class Executor {
                     override fun reject(var1: String) { retValue = var1; }
                     override fun resolve(var1: String) { retValue = var1; }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue;
             }
             "openchannelstep1" -> {
-                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
                 var retValue = "";
-                openChannelStep1(arg1, arg2.toInt(), object : Promise {
+                openChannelStep1(arg1, arg2.toInt(), arg3.toInt(), object : Promise {
                     override fun reject(var1: String) { retValue = var1; }
                     override fun resolve(var1: String) { retValue = var1; }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue;
             }
@@ -164,6 +202,29 @@ class Executor {
                     override fun reject(var1: String) { retValue = var1; }
                     override fun resolve(var1: String) { retValue = var1; }
                     override fun resolve(var1: Boolean) {}
+                    override fun resolve(var1: Int) {}
+                })
+                return retValue;
+            }
+            "closechannelcooperatively" -> {
+                if (arg1 == null) return "incorrect arguments"
+                var retValue = "";
+                closeChannelCooperatively(arg1, object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) { retValue = var1.toString(); }
+                    override fun resolve(var1: Int) {}
+                })
+                return retValue;
+            }
+            "closeChannelForce" -> {
+                if (arg1 == null) return "incorrect arguments"
+                var retValue = "";
+                closeChannelForce(arg1, object : Promise {
+                    override fun reject(var1: String) { retValue = var1; }
+                    override fun resolve(var1: String) { retValue = var1; }
+                    override fun resolve(var1: Boolean) { retValue = var1.toString(); }
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue;
             }
@@ -174,6 +235,7 @@ class Executor {
                     override fun resolve(var1: Boolean) { retValue = var1; }
                     override fun resolve(var1: String) {}
                     override fun reject(var1: String) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue.toString();
             }
@@ -184,6 +246,7 @@ class Executor {
                     override fun resolve(var1: Boolean) { retValue = var1; }
                     override fun resolve(var1: String) {}
                     override fun reject(var1: String) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue.toString();
             }
@@ -194,8 +257,20 @@ class Executor {
                     override fun resolve(var1: Boolean) { retValue = var1; }
                     override fun resolve(var1: String) {}
                     override fun reject(var1: String) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue.toString();
+            }
+            "disconnectbynodeid" -> {
+                if (arg1 == null) return "incorrect arguments"
+                var retValue = ""
+                disconnectByNodeId(arg1, object : Promise {
+                    override fun resolve(var1: Boolean) { retValue = var1.toString() }
+                    override fun resolve(var1: String) {  retValue = var1 }
+                    override fun reject(var1: String) {  retValue = var1 }
+                    override fun resolve(var1: Int) {}
+                })
+                return retValue
             }
             "getrelevanttxids" -> {
                 var retValue = ""
@@ -203,6 +278,7 @@ class Executor {
                     override fun resolve(var1: Boolean) {}
                     override fun resolve(var1: String) {  retValue = var1 }
                     override fun reject(var1: String) {  retValue = var1 }
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue
             }
@@ -213,6 +289,7 @@ class Executor {
                     override fun resolve(var1: Boolean) { retValue = var1; }
                     override fun resolve(var1: String) {}
                     override fun reject(var1: String) {}
+                    override fun resolve(var1: Int) {}
                 })
                 return retValue.toString();
             }
