@@ -17,7 +17,15 @@ fun hexStringToByteArray(strArg: String): ByteArray {
     return result
 }
 
-
 fun byteArrayToHex(bytesArg: ByteArray): String {
     return bytesArg.joinToString("") { String.format("%02X", (it.toInt() and 0xFF)) }.toLowerCase()
 }
+
+fun helperJsonResponseSuccess(message: String): String {
+    return "{\"error\": false, \"result\": \"$message\"}";
+}
+
+fun helperJsonResponseFailure(message: String): String {
+    return "{\"error\": true, \"result\": \"$message\"}";
+}
+

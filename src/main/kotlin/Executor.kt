@@ -4,13 +4,13 @@ import kotlin.system.exitProcess
 class Executor {
     fun execute(command: String, arg1: String?, arg2: String?, arg3: String?, arg4: String? = null, arg5: String? = null): String {
         when (command) {
-            "help" -> return "Welcome to the Hello Lightning server!\n" +
+            "help" -> return helperJsonResponseSuccess("Welcome to the Hello Lightning server!\n" +
                     "To exit, type: 'EXIT'.\n" +
                     "Available commands: 'start', 'stop', 'connectpeer', 'listpeers', 'ldkversion', 'help', 'getnodeid', 'setfeerate'\n" +
-                    "                    'listchannels'"
+                    "                    'listchannels'")
             "stop" -> exitProcess(0)
             "start" -> {
-                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
+                if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 println("starting LDK... using " + arg1 + " " + arg2 + " " + arg3)
                 var serializedChannelManager = ""
                 var serializedMonitors = ""
@@ -32,273 +32,313 @@ class Executor {
                 println("serializedMonitors = " + serializedMonitors)
 
                 start(arg1, arg2.toInt(), arg3, serializedChannelManager, serializedMonitors)
-                return "ok";
+                return helperJsonResponseSuccess("ok")
             }
-            "ldkversion" -> return (org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version())
+            "ldkversion" -> return helperJsonResponseSuccess((org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version()))
             "connectpeer" -> {
-                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
-                var retValue = false;
+                if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
+                var retValue = "";
                 connectPeer(arg1, arg2, arg3.toInt(), object : Promise {
-                    override fun reject(var1: String) { retValue = false }
-                    override fun resolve(var1: String) {}
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 });
-                return retValue.toString();
+                return retValue;
             }
             "addinvoice" -> {
-                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                if (arg1 == null || arg2 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = ""
                 addInvoice(arg1.toInt(), arg2, object : Promise {
-                    override fun reject(var1: String) { retValue = var1 }
-                    override fun resolve(var1: String) { retValue = var1 }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 });
                 return retValue
             }
             "listpeers" -> {
                 var retValue = "";
                 listPeers(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 });
                 return retValue;
             }
             "getnodeid" -> {
                 var retValue = "";
                 getNodeId(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "listchannels" -> {
                 var retValue = "";
                 listChannels(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "listusablechannels" -> {
                 var retValue = "";
                 listUsableChannels(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "getmaturingbalance" -> {
                 var retValue = "";
                 getMaturingBalance(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) { retValue = var1.toString(); }
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "getmaturingheight" -> {
                 var retValue = "";
                 getMaturingHeight(object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) { retValue = var1.toString(); }
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "geteventschannelclosed" ->  {
                 val ret = eventsChannelClosed.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsChannelClosed = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventsfundinggenerationready" ->  {
                 val ret = eventsFundingGenerationReady.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsFundingGenerationReady = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventsregistertx" -> {
                 val ret = eventsRegisterTx.joinToString(separator = ",", prefix = "[", postfix = "]")
                 // NOT cleaning it up
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventsregisteroutput" -> {
                 val ret = eventsRegisterOutput.joinToString(separator = ",", prefix = "[", postfix = "]")
                 // NOT cleaning it up
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventstxbroadcast" ->  {
                 val ret = eventsTxBroadcast.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsTxBroadcast = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventspaymentsent" ->  {
                 val ret = eventsPaymentSent.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsPaymentSent = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventspaymentpathfailed" ->  {
                 val ret = eventsPaymentPathFailed.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsPaymentPathFailed = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventspaymentreceived" ->  {
                 val ret = eventsPaymentReceived.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsPaymentReceived = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "geteventspaymentforwarded" ->  {
                 val ret = eventsPaymentForwarded.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsPaymentForwarded = arrayOf<String>()
-                return ret
+                return helperJsonResponseSuccess(ret)
             }
             "setfeerate" -> {
-                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
-                var retValue = false;
+                if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
+                var retValue = "";
                 setFeerate(arg1.toInt(), arg2.toInt(), arg3.toInt(), object : Promise {
-                    override fun reject(var1: String) {}
-                    override fun resolve(var1: String) {}
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
-                return retValue.toString();
+                return retValue
             }
             "payinvoice" -> {
-                if (arg1 == null || arg2 == null) return "incorrect arguments"
+                if (arg1 == null || arg2 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
                 payInvoice(arg1, arg2.toInt(), object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue;
             }
             "openchannelstep1" -> {
-                if (arg1 == null || arg2 == null || arg3 == null) return "incorrect arguments"
+                if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
                 openChannelStep1(arg1, arg2.toInt(), arg3.toInt(), object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue;
             }
             "openchannelstep2" -> {
-                if (arg1 == null) return "incorrect arguments"
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
                 openChannelStep2(arg1, object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue;
             }
             "closechannelcooperatively" -> {
-                if (arg1 == null) return "incorrect arguments"
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
                 closeChannelCooperatively(arg1, object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) { retValue = var1.toString(); }
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue;
             }
             "closeChannelForce" -> {
-                if (arg1 == null) return "incorrect arguments"
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
                 closeChannelForce(arg1, object : Promise {
-                    override fun reject(var1: String) { retValue = var1; }
-                    override fun resolve(var1: String) { retValue = var1; }
-                    override fun resolve(var1: Boolean) { retValue = var1.toString(); }
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue;
             }
             "updatebestblock" -> {
-                if (arg1 == null || arg2 == null) return "incorrect arguments"
-                var retValue = false;
+                if (arg1 == null || arg2 == null) return helperJsonResponseFailure("incorrect arguments")
+                var retValue = ""
                 updateBestBlock(arg1, arg2.toInt(), object : Promise {
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                    override fun resolve(var1: String) {}
-                    override fun reject(var1: String) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
-                return retValue.toString();
+                return retValue
             }
             "transactionconfirmed" -> {
-                if (arg1 == null || arg2 == null || arg3 == null || arg4 == null) return "incorrect arguments"
-                var retValue = false;
+                if (arg1 == null || arg2 == null || arg3 == null || arg4 == null) return helperJsonResponseFailure("incorrect arguments")
+                var retValue = ""
                 transactionConfirmed(arg1, arg2.toInt(), arg3.toInt(), arg4, object : Promise {
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                    override fun resolve(var1: String) {}
-                    override fun reject(var1: String) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
-                return retValue.toString();
+                return retValue
             }
             "transactionunconfirmed" -> {
-                if (arg1 == null) return "incorrect arguments"
-                var retValue = false;
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
+                var retValue = ""
                 transactionUnconfirmed(arg1, object : Promise {
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                    override fun resolve(var1: String) {}
-                    override fun reject(var1: String) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
-                return retValue.toString();
+                return retValue
             }
             "disconnectbynodeid" -> {
-                if (arg1 == null) return "incorrect arguments"
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = ""
                 disconnectByNodeId(arg1, object : Promise {
-                    override fun resolve(var1: Boolean) { retValue = var1.toString() }
-                    override fun resolve(var1: String) {  retValue = var1 }
-                    override fun reject(var1: String) {  retValue = var1 }
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "getrelevanttxids" -> {
                 var retValue = ""
                 getRelevantTxids(object : Promise {
-                    override fun resolve(var1: Boolean) {}
-                    override fun resolve(var1: String) {  retValue = var1 }
-                    override fun reject(var1: String) {  retValue = var1 }
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
             }
             "setrefundaddressscript" -> {
-                if (arg1 == null) return "incorrect arguments"
-                var retValue = false;
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
+                var retValue = ""
                 setRefundAddressScript(arg1, object : Promise {
-                    override fun resolve(var1: Boolean) { retValue = var1; }
-                    override fun resolve(var1: String) {}
-                    override fun reject(var1: String) {}
-                    override fun resolve(var1: Int) {}
+                    override fun resolve(var1: String) { retValue = helperJsonResponseSuccess(var1) }
+                    override fun reject(var1: String) { retValue = helperJsonResponseFailure(var1) }
+                    override fun resolve(var1: Boolean) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Boolean) { retValue = helperJsonResponseFailure(var1.toString()) }
+                    override fun resolve(var1: Int) { retValue = helperJsonResponseSuccess(var1.toString()) }
+                    override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
-                return retValue.toString();
+                return retValue
             }
             "savenetworkgraph" -> {
                 File("$homedir/$prefix_network_graph").writeBytes(router!!.write());
-                return "true"
+                return helperJsonResponseSuccess("true")
             }
             else -> {
-                return "unknown command: $command"
+                return helperJsonResponseFailure("unknown command: $command")
             }
         }
     }
