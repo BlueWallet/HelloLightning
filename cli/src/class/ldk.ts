@@ -237,4 +237,10 @@ export default class Ldk {
     const text = await response.text();
     return JSON.parse(text)
   }
+
+  public async listChannels() {
+    const response = await fetch(`http://127.0.0.1:8310/listchannels`);
+    const text = await response.text();
+    return JSON.parse(text)
+  }
 }
