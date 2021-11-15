@@ -63,6 +63,7 @@ fun handleEvent(event: Event) {
         println("ReactNativeLDK: " + "payment sent, preimage: " + byteArrayToHex((event as Event.PaymentSent).payment_preimage));
         val params = WritableMap()
         params.putString("payment_preimage", byteArrayToHex((event as Event.PaymentSent).payment_preimage));
+        storeEvent("$homedir/events_payment_sent", params)
         eventsPaymentSent = eventsPaymentSent.plus(params.toString())
     }
 
@@ -71,6 +72,7 @@ fun handleEvent(event: Event) {
         val params = WritableMap()
         params.putString("payment_hash", byteArrayToHex(event.payment_hash));
         params.putString("rejected_by_dest", event.rejected_by_dest.toString());
+        storeEvent("$homedir/events_payment_path_failed", params)
         eventsPaymentPathFailed = eventsPaymentPathFailed.plus(params.toString())
     }
 
@@ -97,6 +99,7 @@ fun handleEvent(event: Event) {
             params.putString("payment_preimage", byteArrayToHex(paymentPreimage));
         }
         params.putString("amt", event.amt.toString());
+        storeEvent("$homedir/events_payment_received", params)
         eventsPaymentReceived = eventsPaymentReceived.plus(params.toString())
     }
 
@@ -114,6 +117,7 @@ fun handleEvent(event: Event) {
             params.putString("temporary_channel_id", byteArrayToHex(event.temporary_channel_id));
             params.putString("user_channel_id", event.user_channel_id.toString());
             temporary_channel_id = event.temporary_channel_id;
+            storeEvent("$homedir/events_funding_generation_ready", params)
             eventsFundingGenerationReady = eventsFundingGenerationReady.plus(params.toString())
         }
     }
@@ -122,6 +126,7 @@ fun handleEvent(event: Event) {
         val params = WritableMap()
         params.putString("fee_earned_msat", event.fee_earned_msat.toString())
         if (event.claim_from_onchain_tx) params.putString("claim_from_onchain_tx", "1")
+        storeEvent("$homedir/events_payment_forwarded", params)
         eventsPaymentForwarded = eventsPaymentForwarded.plus(params.toString())
     }
 
@@ -155,7 +160,7 @@ fun handleEvent(event: Event) {
             params.putString("reason", "ProcessingError");
             params.putString("text", reason.err);
         }
-
+        storeEvent("$homedir/events_channel_closed", params)
         eventsChannelClosed = eventsChannelClosed.plus(params.toString())
     }
 }
@@ -219,6 +224,7 @@ fun start(
         println("ReactNativeLDK: " + "broadcaster sends an event asking to broadcast some txhex...")
         val params = WritableMap();
         params.putString("txhex", byteArrayToHex(tx))
+        storeEvent("$homedir/events_tx_broadcast", params)
         eventsTxBroadcast = eventsTxBroadcast.plus(params.toString())
     }
 
@@ -269,6 +275,7 @@ fun start(
             val params = WritableMap()
             params.putString("txid", byteArrayToHex(txid))
             params.putString("script_pubkey", byteArrayToHex(script_pubkey))
+            storeEvent("$homedir/events_register_tx", params)
             eventsRegisterTx = eventsRegisterTx.plus(params.toString())
         }
 
@@ -281,6 +288,7 @@ fun start(
             }
             params.putString("index", output._outpoint._index.toString())
             params.putString("script_pubkey", byteArrayToHex(output._script_pubkey))
+            storeEvent("$homedir/events_register_output", params)
             eventsRegisterOutput = eventsRegisterOutput.plus(params.toString())
             return Option_C2Tuple_usizeTransactionZZ.none();
         }

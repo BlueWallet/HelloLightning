@@ -1,3 +1,5 @@
+import java.io.File
+
 fun hexStringToByteArray(strArg: String): ByteArray {
     val HEX_CHARS = "0123456789ABCDEF"
     val str = strArg.toUpperCase();
@@ -31,3 +33,13 @@ fun helperJsonResponseFailure(message: String): String {
     return "{\"error\": true, \"result\": \"$message\"}";
 }
 
+
+
+fun storeEvent(eventsPath: String, params: WritableMap) {
+    val directory = File(eventsPath)
+    if (!directory.exists()) {
+        directory.mkdir()
+    }
+
+    File(eventsPath + "/" + System.currentTimeMillis() + ".json").writeText(params.toString())
+}
