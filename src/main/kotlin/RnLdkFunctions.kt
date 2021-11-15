@@ -87,7 +87,6 @@ fun channel2channelObject(it: ChannelDetails): String {
     channelObject += "\"is_funding_locked\":" + it._is_funding_locked + ",";
     channelObject += "\"is_outbound\":" + it._is_outbound + ",";
     channelObject += "\"is_public\":" + it._is_public + ",";
-    channelObject += "\"remote_node_id\":" + "\"" + byteArrayToHex(it._counterparty._node_id) + "\","; // @deprecated fixme
     val fundingTxoTxid = it._funding_txo?._txid;
     if (fundingTxoTxid is ByteArray) {
         channelObject += "\"funding_txo_txid\":" + "\"" + byteArrayToHex(fundingTxoTxid) + "\",";

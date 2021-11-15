@@ -2,11 +2,13 @@
 import fetch from 'cross-fetch';
 import * as bip39 from 'bip39';
 const crypto = require('crypto');
+const fs = require('fs');
 
 export default class Ldk {
   private injectedScript2address: ((scriptHex: string) => Promise<string>) | null = null;
   private logs: string[] = [];
   private secret: string = '';
+  private _nodeConnectionDetailsCache: any = {};
 
   logToGeneralLog(...args: any[]) {
     const str = JSON.stringify(args);
@@ -313,5 +315,76 @@ export default class Ldk {
     const response = await fetch(`http://127.0.0.1:8310/savenetworkgraph`);
     const text = await response.text();
     return this._processResult(text)
+  }
+
+  async reconnectPeers(homedir: string) {
+    this.logToGeneralLog('attempting to reconnect peers if needed...');
+    const peers2reconnect = {};
+
+    const listPeers = await this.listPeers();
+    const listChannels = await this.listChannels();
+
+    // do we have any channels that need reconnection with peers..?
+    for (const channel of listChannels) {
+      if (!listPeers.includes(channel.counterparty_node_id)) peers2reconnect[channel.counterparty_node_id] = channel.counterparty_node_id
+    }
+
+    // do we have any peers stored in file that must be connected..?
+    let storedPeers = [];
+    try {
+      const storedPeersTxt = fs.readFileSync(`${homedir}/peers.json`)
+      if (storedPeersTxt) storedPeers = JSON.parse(storedPeersTxt);
+    } catch (_) {}
+    for (const storedPeer of storedPeers) {
+      if (!listPeers.includes(storedPeer)) peers2reconnect[storedPeer] = storedPeer;
+    }
+
+    const peers2save = {};
+    // dumb dedup:
+    for (const peer of storedPeers.concat(listPeers).concat(Object.keys(peers2reconnect))) {
+      peers2save[peer] = peer;
+    }
+    fs.writeFileSync((`${homedir}/peers.json`), JSON.stringify(Object.keys(peers2save)));
+
+    // finally. conencting to the ones that need connection:
+    for (const peer of Object.keys(peers2reconnect)) {
+      this.logToGeneralLog(`connecting to ${peer}`)
+      const details = await this.lookupNodeConnectionDetailsByPubkey(peer);
+      this.logToGeneralLog(`(${details.pubkey}@${details.host}:${details.port})`);
+      await this.connectPeer(details.pubkey, details.host ,details.port);
+    }
+  }
+
+  public async connectPeer(pubkey, host, port) {
+    const response = await fetch(`http://127.0.0.1:8310/connectpeer/${pubkey}/${host}/${port}`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
+  async lookupNodeConnectionDetailsByPubkey(pubkey: string) {
+    // first, trying cache:
+    if (this._nodeConnectionDetailsCache[pubkey] && +new Date() - this._nodeConnectionDetailsCache[pubkey].ts < 4 * 7 * 24 * 3600 * 1000) {
+      // cache hit
+      return this._nodeConnectionDetailsCache[pubkey];
+    }
+
+    // doing actual fetch and filling cache:
+    const response = await fetch(`https://1ml.com/node/${pubkey}/json`);
+    const json = await response.json();
+    if (json && json.addresses && Array.isArray(json.addresses)) {
+      for (const address of json.addresses) {
+        if (address.network === 'tcp') {
+          const ret = {
+            pubkey,
+            host: address.addr.split(':')[0],
+            port: parseInt(address.addr.split(':')[1]),
+          };
+
+          this._nodeConnectionDetailsCache[pubkey] = Object.assign({}, ret, { ts: +new Date() });
+
+          return ret;
+        }
+      }
+    }
   }
 }

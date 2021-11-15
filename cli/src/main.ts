@@ -5,6 +5,7 @@ const fs = require('fs');
 
 let lastBlockchainSync = 0;
 let lastNetworkGraphSaved = 0;
+let lastPeersReconnect = 0;
 const homedir = require('os').homedir() + '/.hellolightning';
 const seedfile = `${homedir}/seed.txt`;
 const ldk = new Ldk();
@@ -47,7 +48,7 @@ async function tick() {
       await ldk.start("00000000000000000000000000000000000000000000000000000000000000f6"); // fixme
     } catch (error) {
       console.error(error.message);
-      await new Promise(resolve => setTimeout(resolve, 5000)); // sleep
+      await new Promise(resolve => setTimeout(resolve, 10* 1000)); // sleep
     }
 
     return;
@@ -59,9 +60,14 @@ async function tick() {
     ldk.checkBlockchain(); // let it run in the background
   }
 
-  if (+new Date() - lastNetworkGraphSaved >  1 * 60 * 1000) { // 5 min
+  if (+new Date() - lastNetworkGraphSaved >  1 * 60 * 1000) {
     lastNetworkGraphSaved = +new Date();
     ldk.saveNetworkGraph(); // let it run in the background
+  }
+
+  if (+new Date() - lastPeersReconnect >  1 * 60 * 1000) {
+    lastPeersReconnect = +new Date();
+    ldk.reconnectPeers(homedir); // let it run in the background
   }
 
   const peers = await ldk.listPeers();
@@ -76,14 +82,14 @@ async function tick() {
     inbound_capacity_msat += channel.inbound_capacity_msat;
   });
 
-  const table = new Table(/*{head: ['', '', '']}*/)
+  const table = new Table()
   table.push(
     ['num peers', 'last sync', 'num channels', 'num active channels', 'channel balance', 'inbound capacity', 'node id']
     , [peers.length, Math.floor((+new Date() - lastBlockchainSync)/1000) + ' sec ago', channels.length, activeAhannels.length, msatToBitcoinString(outbound_capacity_msat), msatToBitcoinString(inbound_capacity_msat), nodeid]
   )
 
   console.log(table.toString())
-  console.log(ldk.getLastLogsLines(10).join("\n"));
+  console.log(ldk.getLastLogsLines(30).join("\n"));
 }
 
 async function main() {

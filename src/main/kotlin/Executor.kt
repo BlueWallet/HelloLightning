@@ -4,10 +4,7 @@ import kotlin.system.exitProcess
 class Executor {
     fun execute(command: String, arg1: String?, arg2: String?, arg3: String?, arg4: String? = null, arg5: String? = null): String {
         when (command) {
-            "help" -> return helperJsonResponseSuccess("Welcome to the Hello Lightning server!\n" +
-                    "To exit, type: 'EXIT'.\n" +
-                    "Available commands: 'start', 'stop', 'connectpeer', 'listpeers', 'ldkversion', 'help', 'getnodeid', 'setfeerate'\n" +
-                    "                    'listchannels'")
+            "help" -> return helperJsonResponseSuccess("Welcome to the Hello Lightning server!")
             "stop" -> exitProcess(0)
             "start" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
@@ -35,6 +32,7 @@ class Executor {
                 return helperJsonResponseSuccess("ok")
             }
             "ldkversion" -> return helperJsonResponseSuccess((org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version()))
+            "version" -> return "1.0.0"
             "connectpeer" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
