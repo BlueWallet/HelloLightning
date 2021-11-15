@@ -43,9 +43,9 @@ async function tick() {
     try {
       const seedFromDisk = fs.readFileSync(seedfile, { encoding: 'utf8' })
       ldk.setSecret(seedFromDisk);
-      // const hex = ldk.getEntropyHex();
-      // await ldk.start(hex);
-      await ldk.start("00000000000000000000000000000000000000000000000000000000000000f6"); // fixme
+      const hex = ldk.getEntropyHex();
+      await ldk.start(hex);
+      // await ldk.start("00000000000000000000000000000000000000000000000000000000000000f6"); // fixme
     } catch (error) {
       console.error(error.message);
       await new Promise(resolve => setTimeout(resolve, 10* 1000)); // sleep
