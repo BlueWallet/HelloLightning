@@ -235,7 +235,7 @@ fun start(
             if (id == null || data == null) return null;
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: persist_new_channel")
-            File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
+            File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id()) + ".hex").writeText(byteArrayToHex(channel_monitor_bytes));
             return Result_NoneChannelMonitorUpdateErrZ.ok();
         }
 
@@ -243,7 +243,7 @@ fun start(
             if (id == null || data == null) return null;
             val channel_monitor_bytes = data.write()
             println("ReactNativeLDK: update_persisted_channel");
-            File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id())).writeText(byteArrayToHex(channel_monitor_bytes));
+            File(homedir + "/" + prefix_channel_monitor + byteArrayToHex(id.to_channel_id()) + ".hex").writeText(byteArrayToHex(channel_monitor_bytes));
             return Result_NoneChannelMonitorUpdateErrZ.ok();
         }
     })
@@ -258,7 +258,7 @@ fun start(
         override fun persist_manager(channel_manager_bytes: ByteArray?) {
             println("persist_manager");
             if (channel_manager_bytes != null) {
-                File("$homedir/$prefix_channel_manager").writeText(byteArrayToHex(channel_manager_bytes));
+                File("$homedir/$prefix_channel_manager.hex").writeText(byteArrayToHex(channel_manager_bytes));
             }
         }
     }
