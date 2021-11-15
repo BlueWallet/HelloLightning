@@ -8,7 +8,7 @@ import kotlin.concurrent.thread
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
 val prefix_channel_manager = "channel_manager"
-val prefix_network_graph = "network_graph"
+val prefix_network_graph = "network_graph.bin"
 
 var feerate_fast = 7500; // estimate fee rate in BTC/kB
 var feerate_medium = 7500; // estimate fee rate in BTC/kB

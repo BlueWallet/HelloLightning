@@ -22,10 +22,12 @@ fun byteArrayToHex(bytesArg: ByteArray): String {
 }
 
 fun helperJsonResponseSuccess(message: String): String {
+    if (message.startsWith('{') || message.startsWith('[')) return "{\"error\": false, \"result\": $message}"; // json
     return "{\"error\": false, \"result\": \"$message\"}";
 }
 
 fun helperJsonResponseFailure(message: String): String {
+    if (message.startsWith('{') || message.startsWith('[')) return "{\"error\": true, \"result\": $message}"; // json
     return "{\"error\": true, \"result\": \"$message\"}";
 }
 

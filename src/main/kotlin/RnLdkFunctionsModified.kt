@@ -320,10 +320,10 @@ fun start(
 
     // initialize graph sync #########################################################################
 
-    val f = File(homedir + '/' + prefix_network_graph);
+    val f = File("$homedir/$prefix_network_graph");
     if (f.exists()) {
         println("loading network graph...")
-        val serialized_graph = File(homedir + '/' + prefix_network_graph).readBytes()
+        val serialized_graph = File("$homedir/$prefix_network_graph").readBytes()
         val readResult = NetworkGraph.read(serialized_graph)
         if (readResult is Result_NetworkGraphDecodeErrorZ.Result_NetworkGraphDecodeErrorZ_OK) {
             router = readResult.res

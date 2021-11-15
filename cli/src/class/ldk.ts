@@ -1,12 +1,20 @@
-/* eslint-disable no-empty */
+/* eslint-disable no-empty,@typescript-eslint/no-inferrable-types,@typescript-eslint/no-var-requires */
 import fetch from 'cross-fetch';
+import * as bip39 from 'bip39';
+const crypto = require('crypto');
 
 export default class Ldk {
   private injectedScript2address: ((scriptHex: string) => Promise<string>) | null = null;
+  private logs: string[] = [];
+  private secret: string = '';
 
   logToGeneralLog(...args: any[]) {
     const str = JSON.stringify(args);
-    console.log('js log:', str);
+    this.logs.push(str)
+  }
+
+  getLastLogsLines(num: number) {
+    return this.logs.slice(num * -1);
   }
 
   private async getHeaderHexByHeight(height: number) {
@@ -41,7 +49,7 @@ export default class Ldk {
     this.logToGeneralLog('updateBestBlock():', { headerHex, height });
     const response = await fetch(`http://127.0.0.1:8310/updatebestblock/${headerHex}/${height}`);
     const text = await response.text();
-    return JSON.parse(text);
+    return this._processResult(text);
   }
 
   private async updateFeerate() {
@@ -82,7 +90,7 @@ export default class Ldk {
     const slow = newFeerateSlow * 250;
     const response = await fetch(`http://127.0.0.1:8310/setfeerate/${fast}/${medium}/${slow}`);
     const text = await response.text();
-    return JSON.parse(text);
+    return this._processResult(text);
   }
 
   /**
@@ -205,42 +213,105 @@ export default class Ldk {
   private async getRelevantTxids() {
     const response = await fetch('http://127.0.0.1:8310/getrelevanttxids');
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
   }
 
   private async transactionConfirmed(headerHex: string, height: number, pos: number, transactionHex: string) {
     const response = await fetch(`http://127.0.0.1:8310/transactionconfirmed/${headerHex}/${height}/${pos}/${transactionHex}`)
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
   }
 
   private async transactionUnconfirmed(txid: string) {
     const response = await fetch(`http://127.0.0.1:8310/transactionunconfirmed/${txid}`);
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
   }
 
   private async getRegisteredTxs() {
     const response = await fetch(`http://127.0.0.1:8310/geteventsregistertx`);
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
   }
 
   private async getRegisteredOutputs() {
     const response = await fetch(`http://127.0.0.1:8310/geteventsregisteroutput`);
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
   }
 
   public async listPeers() {
     const response = await fetch(`http://127.0.0.1:8310/listpeers`);
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
   }
 
   public async listChannels() {
     const response = await fetch(`http://127.0.0.1:8310/listchannels`);
     const text = await response.text();
-    return JSON.parse(text)
+    return this._processResult(text)
+  }
+
+  public async listUsableChannels() {
+    const response = await fetch(`http://127.0.0.1:8310/listusablechannels`);
+    const text = await response.text();
+    return this._processResult(text)
+  }
+
+  public async getNodeId() {
+    const response = await fetch(`http://127.0.0.1:8310/getnodeid`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
+  public async start(entropy) {
+    const tip = await this.getCurrentHeight();
+    const response2 = await fetch('https://blockstream.info/api/block-height/' + tip);
+    const hash = await response2.text();
+
+    const response = await fetch(`http://127.0.0.1:8310/start/${entropy}/${tip}/${hash}`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
+  private _processResult(text: string) {
+    const json = JSON.parse(text);
+    if (json.error) throw new Error(json.result);
+    return json.result;
+  }
+
+  async generate() {
+    const buf = await this.randomBytes(16);
+    this.secret = '' + bip39.entropyToMnemonic(buf.toString('hex'));
+  }
+
+  getEntropyHex() {
+    let ret = bip39.mnemonicToEntropy(this.secret.replace('', ''));
+    while (ret.length < 64) ret = '0' + ret;
+    return ret;
+  }
+
+  getSecret(): string {
+    return this.secret;
+  }
+
+  setSecret(secret) {
+    this.secret = secret;
+  }
+
+  async randomBytes(size): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(size, (err, data) => {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
+  async saveNetworkGraph() {
+    this.logToGeneralLog('saving network graph to disk...');
+    const response = await fetch(`http://127.0.0.1:8310/savenetworkgraph`);
+    const text = await response.text();
+    return this._processResult(text)
   }
 }
