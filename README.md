@@ -1,15 +1,14 @@
 # Hello, Lightning!
 
 Cli lightning network server, based on LDK (rust-lightning).
-Provides DUMB-RPC (telnet friendly) and HTTP interface.
+Provides HTTP-RPC interface.
 
 ## Example:
 
-* build it
+* build it (or download binary from releases)
 * run it: `java -jar ./out/artifacts/hello_main_jar/hello.main.jar`
-* now DUMB-RPC/HTTP server listens on port 8310
-* start the server with `start.sh` script
-* ...or run nodejs control process from `./cli/` directory (`npm i && npm start`)
+* now HTTP server listens on port 8310
+* run nodejs control process from `./cli/` directory (`npm i && npm start`)
 
 ## Philosophy
 
@@ -20,13 +19,13 @@ includes: providing blockchain data, managing onchain coins to open channels (vi
 ## Security
 
 Server is intended to run in a secure environment. Thus, on-disk storage is not encrypted, and RPC server
-handles connections without TLS (plain HTTP)
+handles connections without TLS (plain HTTP). Also, even though RPC listens on 127.0.0.1, it has no auth.
 
 ## TODO
 
 * ~~port methods from https://github.com/BlueWallet/rn-ldk/blob/master/android/src/main/java/com/rnldk/RnLdkModule.kt while adding DUMB-RPC interface for them~~
 * create a GUI app (Electron?)
-* create a cli controll process
+* ~~create a cli control process~~
 * ...
 * Profit!
 
@@ -34,26 +33,26 @@ handles connections without TLS (plain HTTP)
 
 * [x] start
 * [x] stop
-* [x] transactionConfirmed
-* [x] transactionUnconfirmed
-* [x] getRelevantTxids
-* [x] updateBestBlock
-* [x] connectPeer
-* [x] disconnectByNodeId
-* [x] sendPayment
-* [x] addInvoice
-* [x] listPeers
-* [x] getNodeId
-* [x] closeChannelCooperatively
-* [x] closeChannelForce
-* [x] openChannelStep1
-* [x] openChannelStep2
-* [x] listUsableChannels
-* [x] listChannels
-* [x] setRefundAddressScript
-* [x] setFeerate
-* [x] getMaturingBalance
-* [x] getMaturingHeight
+* [x] transactionconfirmed
+* [x] transactionunconfirmed
+* [x] getrelevanttxids
+* [x] updatebestblock
+* [x] connectpeer
+* [x] disconnectbynodeid
+* [x] sendpayment
+* [x] addinvoice
+* [x] listpeers
+* [x] getnodeid
+* [x] closechannelcooperatively
+* [x] closechannelforce
+* [x] openchannelstep1
+* [x] openchannelstep2
+* [x] listusablechannels
+* [x] listcChannels
+* [x] setrefundaddressscript
+* [x] setfeerate
+* [x] getmaturingbalance
+* [x] getmaturingheight
 * [x] savenetworkgraph
 * [x] geteventsfundinggenerationready
 * [x] geteventschannelclosed
