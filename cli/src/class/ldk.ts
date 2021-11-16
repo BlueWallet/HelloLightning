@@ -1,6 +1,8 @@
 /* eslint-disable no-empty,@typescript-eslint/no-inferrable-types,@typescript-eslint/no-var-requires */
 import fetch from 'cross-fetch';
 import * as bip39 from 'bip39';
+const bitcoin = require('bitcoinjs-lib');
+const HDNode = require('bip32');
 const crypto = require('crypto');
 const fs = require('fs');
 
@@ -11,7 +13,8 @@ export default class Ldk {
   private _nodeConnectionDetailsCache: any = {};
 
   logToGeneralLog(...args: any[]) {
-    const str = JSON.stringify(args);
+    let str = new Date().toUTCString();
+    args.map(arg => str += ' ' + JSON.stringify(arg));
     this.logs.push(str)
   }
 
@@ -317,8 +320,31 @@ export default class Ldk {
     return this._processResult(text)
   }
 
+  unwrapFirstExternalAddressFromMnemonics() {
+    if (!this.getSecret()) throw new Error('no secret');
+    const mnemonic = this.getSecret();
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
+    const root = HDNode.fromSeed(seed);
+    const path = "m/84'/0'/0'/0/0";
+    const child = root.derivePath(path);
+
+    return bitcoin.payments.p2wpkh({
+      pubkey: child.publicKey,
+    }).address;
+  }
+
+  unwrapFirstExternalWifFromMnemonics() {
+    if (!this.getSecret()) throw new Error('no secret');
+    const mnemonic = this.getSecret();
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
+    const root = HDNode.fromSeed(seed);
+    const path = "m/84'/0'/0'/0/0";
+    const child = root.derivePath(path);
+
+    return child.toWIF();
+  }
+
   async reconnectPeers(homedir: string) {
-    this.logToGeneralLog('attempting to reconnect peers if needed...');
     const peers2reconnect = {};
 
     const listPeers = await this.listPeers();
@@ -361,6 +387,30 @@ export default class Ldk {
     return this._processResult(text);
   }
 
+  public async version() {
+    const response = await fetch(`http://127.0.0.1:8310/version`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
+  public async ldkversion() {
+    const response = await fetch(`http://127.0.0.1:8310/ldkversion`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
+  public async getMaturingBalance() {
+    const response = await fetch(`http://127.0.0.1:8310/getmaturingbalance`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
+  public async getMaturingHeight() {
+    const response = await fetch(`http://127.0.0.1:8310/getmaturingheight`);
+    const text = await response.text();
+    return this._processResult(text);
+  }
+
   async lookupNodeConnectionDetailsByPubkey(pubkey: string) {
     // first, trying cache:
     if (this._nodeConnectionDetailsCache[pubkey] && +new Date() - this._nodeConnectionDetailsCache[pubkey].ts < 4 * 7 * 24 * 3600 * 1000) {
@@ -386,5 +436,14 @@ export default class Ldk {
         }
       }
     }
+  }
+
+  async setRefundAddress(address: string) {
+    const script = bitcoin.address.toOutputScript(address);
+    const refundAddressScriptHex = script.toString('hex');
+
+    const response = await fetch(`http://127.0.0.1:8310/setrefundaddressscript/${refundAddressScriptHex}`);
+    const text = await response.text();
+    return this._processResult(text);
   }
 }
