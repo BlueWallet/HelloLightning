@@ -53,9 +53,10 @@ fun handleEvent(event: Event) {
 
         if (txResult is Result_TransactionNoneZ.Result_TransactionNoneZ_OK) {
             // success building the transaction, passing it to outer code to broadcast
-//            val params = Arguments.createMap();
-//            params.putString("txhex", byteArrayToHex(txResult.res))
-//            this.sendEvent(MARKER_BROADCAST, params)
+            val params = WritableMap();
+            params.putString("txhex", byteArrayToHex(txResult.res))
+            storeEvent("$homedir/events_tx_broadcast", params)
+            eventsTxBroadcast = eventsTxBroadcast.plus(params.toString())
         }
     }
 

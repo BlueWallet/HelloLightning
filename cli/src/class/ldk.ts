@@ -233,6 +233,24 @@ export default class Ldk {
     return this._processResult(text)
   }
 
+  async broadcastTxsIfNecessary() {
+    const txs = await this.getTxsBroadcast();
+    for (const tx of txs) {
+      this.logToGeneralLog('should broadcast', tx)
+      const response = await fetch('https://blockstream.info/api/tx', {
+        method: 'POST',
+        body: tx.txhex
+      });
+      this.logToGeneralLog('broadcast result: ' + await response.text());
+    }
+  }
+
+  async getTxsBroadcast() {
+    const response = await fetch(`http://127.0.0.1:8310/geteventstxbroadcast`);
+    const text = await response.text();
+    return this._processResult(text)
+  }
+
   private async getRegisteredTxs() {
     const response = await fetch(`http://127.0.0.1:8310/geteventsregistertx`);
     const text = await response.text();

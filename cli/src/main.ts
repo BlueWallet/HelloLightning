@@ -52,9 +52,9 @@ async function tick() {
   if (!started) {
     console.log('attempting to start a node...');
     try {
+      await ldk.setRefundAddress(ldk.unwrapFirstExternalAddressFromMnemonics());
       await ldk.start(ldk.getEntropyHex());
       // await ldk.start("00000000000000000000000000000000000000000000000000000000000000f6"); // fixme
-      await ldk.setRefundAddress(ldk.unwrapFirstExternalAddressFromMnemonics());
     } catch (error) {
       console.error(error.message);
       await new Promise(resolve => setTimeout(resolve, 10* 1000)); // sleep
@@ -71,6 +71,7 @@ async function tick() {
     maturingBalance = await ldk.getMaturingBalance();
     maturingHeight = await ldk.getMaturingHeight();
     ldk.checkBlockchain(); // let it run in the background
+    await ldk.broadcastTxsIfNecessary();
   }
 
   if (+new Date() - lastNetworkGraphSaved >  1 * 60 * 1000) {
@@ -101,12 +102,12 @@ async function tick() {
     , [peers.length, Math.floor((+new Date() - lastBlockchainSync)/1000) + ' sec ago', activeChannels.length + ' / ' + channels.length, msatToBitcoinString(outbound_capacity_msat), msatToBitcoinString(inbound_capacity_msat), nodeid]
   )
 
-  if (maturingBalance) {
+  if (maturingBalance > 0) {
     console.log('maturing balance:', maturingBalance, "sat (awaiting height " + maturingHeight + ")");
   }
 
   console.log(table.toString())
-  console.log(ldk.getLastLogsLines(30).join("\n"));
+  console.log(ldk.getLastLogsLines(20).join("\n"));
 }
 
 async function main() {
