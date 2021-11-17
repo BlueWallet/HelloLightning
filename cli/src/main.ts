@@ -53,6 +53,7 @@ async function tick() {
     console.log('attempting to start a node...');
     try {
       await ldk.setRefundAddress(ldk.unwrapFirstExternalAddressFromMnemonics());
+      await ldk.updateFeerate(); // so any refund claim upon startup would use adequate fee
       await ldk.start(ldk.getEntropyHex());
       // await ldk.start("00000000000000000000000000000000000000000000000000000000000000f6"); // fixme
     } catch (error) {

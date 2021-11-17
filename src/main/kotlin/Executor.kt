@@ -32,7 +32,7 @@ class Executor {
                 return helperJsonResponseSuccess("ok")
             }
             "ldkversion" -> return helperJsonResponseSuccess((org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version()))
-            "version" -> return helperJsonResponseSuccess("1.0.2")
+            "version" -> return helperJsonResponseSuccess("1.0.3")
             "connectpeer" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";

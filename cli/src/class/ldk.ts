@@ -57,7 +57,7 @@ export default class Ldk {
     return this._processResult(text);
   }
 
-  private async updateFeerate() {
+  async updateFeerate() {
     this.logToGeneralLog('updating feerate');
     try {
       const response = await fetch('https://blockstream.info/api/fee-estimates');
