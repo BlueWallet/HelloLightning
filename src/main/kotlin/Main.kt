@@ -52,7 +52,7 @@ fun main(args: Array<String>) {
 
     while (true) {
         val client = server.accept()
-        println("Client connected: ${client.inetAddress.hostAddress}")
+//        println("Client connected: ${client.inetAddress.hostAddress}")
         // Run client in it's own thread.
         thread { ClientHandler(client).run() }
     }

@@ -76,7 +76,7 @@ class ClientHandler(client: Socket) {
     private fun shutdown() {
         running = false
         client.close()
-        println("${client.inetAddress.hostAddress} closed the connection")
+        // println("${client.inetAddress.hostAddress} closed the connection")
     }
 
 }

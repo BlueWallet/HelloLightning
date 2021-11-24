@@ -350,11 +350,11 @@ fun start(
         router = NetworkGraph.of(hexStringToByteArray("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f").reversedArray())
     }
 
-    val route_handler = NetGraphMsgHandler.of(
+    /*val route_handler = NetGraphMsgHandler.of(
         router,
         Option_AccessZ.none(),
         logger
-    )
+    )*/
 
     // INITIALIZE THE CHANNELMANAGER ###############################################################
     // What it's used for: managing channel state
