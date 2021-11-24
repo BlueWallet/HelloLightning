@@ -1,3 +1,5 @@
+status: alpha (not ready for production)
+
 # Hello, Lightning!
 
 Cli lightning network server, based on LDK (rust-lightning).
