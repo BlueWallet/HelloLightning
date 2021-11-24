@@ -1,4 +1,6 @@
 import java.io.File
+import java.math.BigInteger
+import java.security.MessageDigest
 
 fun hexStringToByteArray(strArg: String): ByteArray {
     val HEX_CHARS = "0123456789ABCDEF"
@@ -42,4 +44,9 @@ fun storeEvent(eventsPath: String, params: WritableMap) {
     }
 
     File(eventsPath + "/" + System.currentTimeMillis() + ".json").writeText(params.toString())
+}
+
+fun sha256(input:String): String {
+    val md = MessageDigest.getInstance("SHA-256")
+    return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
 }
