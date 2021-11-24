@@ -8,6 +8,7 @@ class ClientHandler(client: Socket) {
     private val reader: Scanner = Scanner(client.getInputStream())
     private val writer: OutputStream = client.getOutputStream()
     private val executor: Executor = Executor()
+    private val server: Server = Server()
     private var running: Boolean = false
 
     fun run() {
@@ -25,6 +26,13 @@ class ClientHandler(client: Socket) {
 
                 if (text.indexOf(":") > -1 || text === "") {
                     // http header. skip it
+                    continue;
+                }
+
+                if (text.startsWith("GET /gui")) {
+                    val resp = server.serve(text);
+                    write(resp)
+                    shutdown();
                     continue;
                 }
 

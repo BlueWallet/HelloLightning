@@ -49,6 +49,7 @@ fun main(args: Array<String>) {
 
     val server = ServerSocket(8310)
     println("Server is running on port ${server.localPort}")
+    openInBrowser("http://localhost:8310/gui/");
 
     while (true) {
         val client = server.accept()
