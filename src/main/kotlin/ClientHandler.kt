@@ -31,6 +31,8 @@ class ClientHandler(client: Socket) {
                 if (text.startsWith("GET /")) {
                     println(text);
                     write("HTTP/1.0 200 OK\n" +
+//                            "access-control-allow-origin: http://localhost:8310\n" +
+                            "access-control-allow-origin: *\n" + // for prod it should be 8310
                             "Content-type: text/html; charset=UTF-8\n")
                     val text2 = text.split(' ')
                     val values = text2[1].split('/')
