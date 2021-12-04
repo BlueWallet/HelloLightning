@@ -221,8 +221,8 @@ fun start(
 
     // INITIALIZE THE LOGGER #######################################################################
     // What it's used for: LDK logging
-    val logger = Logger.new_impl { arg: String? ->
-        println("ReactNativeLDK: " + arg)
+    val logger = Logger.new_impl { arg: Record ->
+        println("ReactNativeLDK: " + arg._line)
 //        val params = Arguments.createMap()
 //        params.putString("line", arg)
 //        sendEvent(MARKER_LOG, params)
@@ -371,12 +371,24 @@ fun start(
 
     val scorer = LockableScore.of(Scorer.with_default().as_Score())
 
+    // this is gona be fee policy for __incoming__ channels. they are set upfront globally:
+    val uc = UserConfig.with_default()
+    val newChannelConfig = ChannelConfig.with_default()
+    newChannelConfig.set_forwarding_fee_proportional_millionths(10000);
+    newChannelConfig.set_forwarding_fee_base_msat(1000);
+    uc.set_channel_options(newChannelConfig);
+    val newLim = ChannelHandshakeLimits.with_default()
+    newLim.set_force_announced_channel_preference(false)
+    uc.set_peer_channel_config_limits(newLim)
+    //
+
     try {
         if (serializedChannelManagerHex != "") {
             // loading from disk
             channel_manager_constructor = ChannelManagerConstructor(
                 hexStringToByteArray(serializedChannelManagerHex),
                 channelMonitors,
+                uc,
                 keys_manager?.as_KeysInterface(),
                 fee_estimator,
                 chain_monitor,
@@ -391,17 +403,6 @@ fun start(
             nio_peer_handler = channel_manager_constructor!!.nio_peer_handler;
         } else {
             // fresh start
-
-            // this is gona be fee policy for __incoming__ channels. they are set upfront globally:
-            val uc = UserConfig.with_default()
-            val newChannelConfig = ChannelConfig.with_default()
-            newChannelConfig.set_forwarding_fee_proportional_millionths(10000);
-            newChannelConfig.set_forwarding_fee_base_msat(1000);
-            uc.set_channel_options(newChannelConfig);
-            val newLim = ChannelHandshakeLimits.with_default()
-            newLim.set_force_announced_channel_preference(false)
-            uc.set_peer_channel_config_limits(newLim)
-            //
             channel_manager_constructor = ChannelManagerConstructor(
                 Network.LDKNetwork_Bitcoin,
                 uc,

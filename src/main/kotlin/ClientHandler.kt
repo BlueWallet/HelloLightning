@@ -69,8 +69,7 @@ class ClientHandler(client: Socket) {
                 // TODO: Implement exception handling
                 println("Exception handling '" + text + "': ")
                 println(ex)
-                write("Exception handling '" + text + "': ")
-                write(ex.toString())
+                write(helperJsonResponseFailure("Exception handling '" + text + "': " + ex.toString()))
                 shutdown()
             } finally {
 
