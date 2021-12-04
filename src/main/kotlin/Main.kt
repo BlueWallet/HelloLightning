@@ -5,6 +5,9 @@ import java.io.File
 import java.net.ServerSocket
 import kotlin.concurrent.thread
 
+// Globals. Ugly, but ok
+
+var ARG_DISABLE_CORS = false;
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
 val prefix_channel_manager = "channel_manager"
@@ -39,6 +42,12 @@ var eventsPaymentForwarded: Array<String> = arrayOf<String>()
 
 fun main(args: Array<String>) {
     println("Hello Lightning!")
+    args.iterator().forEach {
+        if (it == "--disable-cors") {
+            ARG_DISABLE_CORS = true
+            println("CORS disabled")
+        }
+    }
     homedir = System.getProperty("user.home") + "/.hellolightning";
     println("using " + homedir)
 

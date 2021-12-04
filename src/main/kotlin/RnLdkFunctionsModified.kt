@@ -222,7 +222,7 @@ fun start(
     // INITIALIZE THE LOGGER #######################################################################
     // What it's used for: LDK logging
     val logger = Logger.new_impl { arg: Record ->
-        println("ReactNativeLDK: " + arg._line)
+        println("ReactNativeLDK: " + arg._args)
 //        val params = Arguments.createMap()
 //        params.putString("line", arg)
 //        sendEvent(MARKER_LOG, params)
