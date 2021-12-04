@@ -2,12 +2,14 @@ import org.ldk.batteries.ChannelManagerConstructor
 import org.ldk.batteries.NioPeerHandler
 import org.ldk.structs.*
 import java.io.File
+import java.net.InetAddress
 import java.net.ServerSocket
 import kotlin.concurrent.thread
 
 // Globals. Ugly, but ok
 
 var ARG_DISABLE_CORS = false;
+var ARG_NO_DISPLAY = false;
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
 val prefix_channel_manager = "channel_manager"
@@ -47,6 +49,10 @@ fun main(args: Array<String>) {
             ARG_DISABLE_CORS = true
             println("CORS disabled")
         }
+        if (it == "--no-display") {
+            ARG_NO_DISPLAY = true
+            println("no display")
+        }
     }
     homedir = System.getProperty("user.home") + "/.hellolightning";
     println("using " + homedir)
@@ -56,9 +62,9 @@ fun main(args: Array<String>) {
         directory.mkdir()
     }
 
-    val server = ServerSocket(8310)
+    val server = ServerSocket(8310, 0, InetAddress.getLoopbackAddress())
     println("Server is running on port ${server.localPort}")
-    openInBrowser("http://localhost:8310/gui/");
+    if (!ARG_NO_DISPLAY) openInBrowser("http://localhost:8310/gui/");
 
     while (true) {
         val client = server.accept()
