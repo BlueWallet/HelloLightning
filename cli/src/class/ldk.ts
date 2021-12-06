@@ -90,9 +90,9 @@ export default class Ldk {
    */
   private async setFeerate(newFeerateFast: number, newFeerateMedium: number, newFeerateSlow: number): Promise<boolean> {
     this.logToGeneralLog('setting feerate', { newFeerateFast, newFeerateMedium, newFeerateSlow });
-    const fast = newFeerateFast * 250;
-    const medium = newFeerateMedium * 250;
-    const slow = newFeerateSlow * 250;
+    const fast = Math.max(newFeerateFast * 250, 253);
+    const medium = Math.max(newFeerateMedium * 250, 253);
+    const slow = Math.max(newFeerateSlow * 250, 253);
     const response = await fetch(`http://127.0.0.1:8310/setfeerate/${fast}/${medium}/${slow}`);
     const text = await response.text();
     return this._processResult(text);
