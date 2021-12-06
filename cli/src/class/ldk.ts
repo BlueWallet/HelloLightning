@@ -71,7 +71,7 @@ export default class Ldk {
         const feerateFast = Math.round(json[blockFast]);
         const feerateMedium = Math.round(json[blockMedium]);
         const feerateSlow = Math.round(json[blockSlow]);
-        await this.setFeerate(Math.max(feerateFast, 2), Math.max(feerateMedium, 2), Math.max(feerateSlow, 2));
+        await this.setFeerate(Math.max(feerateFast, 2), Math.max(feerateMedium, 1), Math.max(feerateSlow, 1));
       } else {
         throw new Error('Invalid feerate data:' + JSON.stringify(json));
       }
