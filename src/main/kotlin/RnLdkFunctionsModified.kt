@@ -198,15 +198,6 @@ fun start(
 ) {
     println("ReactNativeLDK: " + "start")
 
-    homedir += "/" + sha256(sha256(entropyHex)).substring(0, 8);
-    println("using " + homedir)
-
-    val directory = File(homedir)
-    if (!directory.exists()) {
-        directory.mkdir()
-    }
-
-
     // INITIALIZE THE FEEESTIMATOR #################################################################
     // What it's used for: estimating fees for on-chain transactions that LDK wants broadcasted.
     val fee_estimator = FeeEstimator.new_impl { confirmation_target: ConfirmationTarget? ->
