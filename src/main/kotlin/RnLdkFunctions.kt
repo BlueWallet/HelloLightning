@@ -47,9 +47,9 @@ fun getNodeId(promise: Promise) {
 }
 
 fun setFeerate(newFeerateFast: Int, newFeerateMedium: Int, newFeerateSlow: Int, promise: Promise) {
-    if (newFeerateFast < 300) return promise.reject("newFeerateFast is too small");
-    if (newFeerateMedium < 300) return promise.reject("newFeerateMedium is too small");
-    if (newFeerateSlow < 300) return promise.reject("newFeerateSlow is too small");
+    if (newFeerateFast < 253) return promise.reject("newFeerateFast is too small");
+    if (newFeerateMedium < 253) return promise.reject("newFeerateMedium is too small");
+    if (newFeerateSlow < 253) return promise.reject("newFeerateSlow is too small");
     feerate_fast = newFeerateFast;
     feerate_medium = newFeerateMedium;
     feerate_slow = newFeerateSlow;
