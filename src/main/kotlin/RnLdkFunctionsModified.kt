@@ -68,13 +68,26 @@ fun handleEvent(event: Event) {
         eventsPaymentSent = eventsPaymentSent.plus(params.toString())
     }
 
+    if (event is Event.PaymentPathSuccessful) {
+        println("ReactNativeLDK: " + "payment path successful");
+    }
+
     if (event is Event.PaymentPathFailed) {
-        println("ReactNativeLDK: " + "payment failed, payment_hash: " + byteArrayToHex(event.payment_hash));
+        println("ReactNativeLDK: " + "payment path failed, payment_hash: " + byteArrayToHex(event.payment_hash));
         val params = WritableMap()
         params.putString("payment_hash", byteArrayToHex(event.payment_hash));
         params.putString("rejected_by_dest", event.rejected_by_dest.toString());
         storeEvent("$homedir/events_payment_path_failed", params)
         eventsPaymentPathFailed = eventsPaymentPathFailed.plus(params.toString())
+    }
+
+    if (event is Event.PaymentFailed) {
+        println("ReactNativeLDK: " + "payment failed, payment_hash: " + byteArrayToHex(event.payment_hash));
+        val params = WritableMap()
+        params.putString("payment_hash", byteArrayToHex(event.payment_hash));
+        params.putString("payment_id", byteArrayToHex(event.payment_id));
+        storeEvent("$homedir/events_payment_failed", params)
+        eventsPaymentFailed = eventsPaymentFailed.plus(params.toString())
     }
 
     if (event is Event.PaymentReceived) {
@@ -213,6 +226,7 @@ fun start(
     // INITIALIZE THE LOGGER #######################################################################
     // What it's used for: LDK logging
     val logger = Logger.new_impl { arg: Record ->
+        if (arg._level == org.ldk.enums.Level.LDKLevel_Gossip) return@new_impl;
         println("ReactNativeLDK: " + arg._args)
 //        val params = Arguments.createMap()
 //        params.putString("line", arg)
@@ -360,13 +374,18 @@ fun start(
     // What it's used for: managing channel state
 
 
-    val scorer = LockableScore.of(Scorer.with_default().as_Score())
+    val scorer = MultiThreadedLockableScore.of(Scorer.with_default().as_Score())
 
     // this is gona be fee policy for __incoming__ channels. they are set upfront globally:
     val uc = UserConfig.with_default()
     val newChannelConfig = ChannelConfig.with_default()
     newChannelConfig.set_forwarding_fee_proportional_millionths(10000);
     newChannelConfig.set_forwarding_fee_base_msat(1000);
+
+    val handshake = ChannelHandshakeConfig.with_default();
+    handshake.set_minimum_depth(1);
+    uc.set_own_channel_config(handshake);
+
     uc.set_channel_options(newChannelConfig);
     val newLim = ChannelHandshakeLimits.with_default()
     newLim.set_force_announced_channel_preference(false)

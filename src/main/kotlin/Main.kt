@@ -39,13 +39,14 @@ var eventsRegisterOutput: Array<String> = arrayOf<String>()
 var eventsTxBroadcast: Array<String> = arrayOf<String>()
 var eventsPaymentSent: Array<String> = arrayOf<String>()
 var eventsPaymentPathFailed: Array<String> = arrayOf<String>()
+var eventsPaymentFailed: Array<String> = arrayOf<String>()
 var eventsPaymentReceived: Array<String> = arrayOf<String>()
 var eventsPaymentForwarded: Array<String> = arrayOf<String>()
 
 fun main(args: Array<String>) {
     println("Hello Lightning!")
     args.iterator().forEach {
-        if (it == "--disable-cors") {
+        if (it == "--disable-cors" || it == "--no-cors") {
             ARG_DISABLE_CORS = true
             println("CORS disabled")
         }

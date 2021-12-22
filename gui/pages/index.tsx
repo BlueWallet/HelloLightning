@@ -1,22 +1,41 @@
 import Head from 'next/head';
-import Layout, { siteTitle } from '../components/layout';
-import useSWR from 'swr';
-
-const fetcher = async (arg1) => {
-  const uri = `http://localhost:8310/${arg1}`;
-  try {
-    const res = await fetch(uri);
-    const json = await res.json();
-    if (json && json.result && !json.error) return json.result;
-  } catch (_) {
-    return null;
-  }
-};
+import Layout, {siteTitle} from '../components/layout';
+import Gsom from '../screens/gsom';
+import NoWalletDetected from '../screens/noWalletDetected';
+import {HelloScreen} from '../models/helloScreen';
+import {useEffect, useState} from 'react';
+import CreateWriteSeedDown from '../screens/createWriteSeedDown';
+import Util from '../classes/util';
+import UnlockWallet from '../screens/unlockWallet';
 
 export default function Index() {
-  const { data: listpeers }: { data?: any, error?: any } = useSWR('listpeers', fetcher, { refreshInterval: 5 * 1000, refreshWhenHidden: true, refreshWhenOffline: true });
-  const { data: listchannels }: { data?: any, error?: any } = useSWR('listchannels', fetcher, { refreshInterval: 5 * 1000, refreshWhenHidden: true, refreshWhenOffline: true });
-  const { data: getnodeid }: { data?: any, error?: any } = useSWR('getnodeid', fetcher, { refreshInterval: 5 * 1000, refreshWhenHidden: true, refreshWhenOffline: true });
+  console.log('rendering Index');
+  const [screen, setScreen] = useState<HelloScreen>(HelloScreen.NoWalletDetected);
+
+  useEffect(() => {
+      const ut = new Util('dummy');
+      if (ut.isSeeded()) {
+          if (!ut.getHotSeed())
+              setScreen(HelloScreen.UnlockWallet);
+          else
+              setScreen(HelloScreen.Gsom);
+      } else {
+          setScreen(HelloScreen.NoWalletDetected);
+      }
+  }, []);
+
+  const renderScreen = () => {
+    console.log('currentScreen = ', screen);
+    switch (screen) {
+      case HelloScreen.Gsom: return (<Gsom changeScreen={setScreen}/>);
+      case HelloScreen.NoWalletDetected: return (<NoWalletDetected changeScreen={setScreen}/>);
+      case HelloScreen.CreateWriteDownSeed: return (<CreateWriteSeedDown changeScreen={setScreen}/>);
+      case HelloScreen.UnlockWallet: return (<UnlockWallet changeScreen={setScreen}/>);
+      default:
+        console.warn('default', screen);
+        return (<Gsom changeScreen={setScreen}/>);
+    }
+  };
 
   return (
       <Layout index>
@@ -25,23 +44,10 @@ export default function Index() {
           </Head>
 
           <div className="d-flex flex-column min-vh-100 justify-content-center align-items-center">
-              {listpeers ? (
-                  <div style={{ fontSize: 20 }}>
-              <span>Peers: {JSON.stringify(listpeers)}</span>
-                  </div>
-              ) : null}
-              {listchannels ? (
-                  <div style={{ fontSize: 20 }}>
-              <span>Channels: {JSON.stringify(listchannels)}</span>
-                  </div>
-              ) : null}
-              {getnodeid ? (
-                  <div style={{ fontSize: 20 }}>
-              <span>Node id: {JSON.stringify(getnodeid)}</span>
-                  </div>
-              ) : (<span>not started..?</span>)}
-              <br/>
+            <h1>👋 ⚡️</h1>
+            {renderScreen()}
           </div>
+
       </Layout>
   );
 }

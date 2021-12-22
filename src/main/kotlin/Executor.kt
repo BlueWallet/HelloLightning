@@ -1,4 +1,5 @@
 import java.io.File
+import java.net.URL
 import kotlin.system.exitProcess
 
 class Executor {
@@ -40,7 +41,7 @@ class Executor {
                 return helperJsonResponseSuccess("ok")
             }
             "ldkversion" -> return helperJsonResponseSuccess((org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version()))
-            "version" -> return helperJsonResponseSuccess("1.1.3")
+            "version" -> return helperJsonResponseSuccess("1.2.0")
             "connectpeer" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";
@@ -174,6 +175,11 @@ class Executor {
                 eventsPaymentPathFailed = arrayOf<String>()
                 return helperJsonResponseSuccess(ret)
             }
+            "geteventspaymentfailed" ->  {
+                val ret = eventsPaymentFailed.joinToString(separator = ",", prefix = "[", postfix = "]")
+                eventsPaymentFailed = arrayOf<String>()
+                return helperJsonResponseSuccess(ret)
+            }
             "geteventspaymentreceived" ->  {
                 val ret = eventsPaymentReceived.joinToString(separator = ",", prefix = "[", postfix = "]")
                 eventsPaymentReceived = arrayOf<String>()
@@ -274,6 +280,11 @@ class Executor {
                     override fun reject(var1: Int) { retValue = helperJsonResponseFailure(var1.toString()) }
                 })
                 return retValue
+            }
+            "node" -> {
+                if (arg1 == null) return helperJsonResponseFailure("incorrect arguments")
+                val resp = URL("https://1ml.com/node/" + arg1 + "/json").readText()
+                return resp;
             }
             "transactionconfirmed" -> {
                 if (arg1 == null || arg2 == null || arg3 == null || arg4 == null) return helperJsonResponseFailure("incorrect arguments")

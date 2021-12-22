@@ -5,8 +5,8 @@
     "dev": "next dev",
     "tslint": "tslint --fix -p . -c tslint.json ",
     "build": "next build",
-    "export": "rm -r -f .next; rm -r -f _next; next build && next export -o gui; npm run pack2kotlin",
     "pack2kotlin": "node pack2kotlin.js && mv StaticFiles.kt  ../src/main/kotlin/",
+    "export": "rm -r -f .next; rm -r -f _next; next build && next export -o gui && npm run pack2kotlin",
     "start": "next start"
   },
   "devDependencies": {
@@ -23,5 +23,11 @@
     "tslint-react-hooks": "^2.2.2",
     "typescript": "^4.2.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "bip32": "2.0.6",
+    "bip39": "^3.0.4",
+    "bitcoinjs-lib": "^6.0.1",
+    "cross-fetch": "^3.1.4",
+    "crypto-js": "^4.1.1"
+  }
 }
