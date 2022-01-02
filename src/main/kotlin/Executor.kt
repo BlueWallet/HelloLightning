@@ -11,6 +11,9 @@ class Executor {
                 if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 println("starting LDK... using " + arg1 + " " + arg2 + " " + arg3)
 
+                if (started) return helperJsonResponseFailure("already started")
+                started = true;
+
                 homedir += "/" + sha256(sha256(arg1)).substring(0, 8);
                 println("using " + homedir)
                 val directory = File(homedir)
@@ -41,7 +44,7 @@ class Executor {
                 return helperJsonResponseSuccess("ok")
             }
             "ldkversion" -> return helperJsonResponseSuccess((org.ldk.impl.version.get_ldk_java_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_c_bindings_version() + ", " + org.ldk.impl.bindings.get_ldk_version()))
-            "version" -> return helperJsonResponseSuccess("1.2.0")
+            "version" -> return helperJsonResponseSuccess("1.2.1")
             "connectpeer" -> {
                 if (arg1 == null || arg2 == null || arg3 == null) return helperJsonResponseFailure("incorrect arguments")
                 var retValue = "";

@@ -10,6 +10,7 @@ import kotlin.concurrent.thread
 
 var ARG_DISABLE_CORS = false;
 var ARG_NO_DISPLAY = false;
+var started = false;
 var homedir = ""
 val prefix_channel_monitor = "channel_monitor_"
 val prefix_channel_manager = "channel_manager"

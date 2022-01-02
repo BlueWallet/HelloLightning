@@ -227,6 +227,7 @@ fun start(
     // What it's used for: LDK logging
     val logger = Logger.new_impl { arg: Record ->
         if (arg._level == org.ldk.enums.Level.LDKLevel_Gossip) return@new_impl;
+        if (arg._level == org.ldk.enums.Level.LDKLevel_Trace) return@new_impl;
         println("ReactNativeLDK: " + arg._args)
 //        val params = Arguments.createMap()
 //        params.putString("line", arg)
