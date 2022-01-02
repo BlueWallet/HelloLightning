@@ -15,6 +15,7 @@ const fetcher = async (arg1) => {
   ldk.setSecret(util.getHotSeed());
 
   if (+new Date() - lastBlockchainSync >  5 * 60 * 1000) { // 5 min
+    console.log('syncing blockchain...')
     lastBlockchainSync = +new Date();
     await ldk.setRefundAddress(ldk.unwrapFirstExternalAddressFromMnemonics());
     maturingBalance = await ldk.getMaturingBalance();
@@ -57,15 +58,29 @@ export default function Gsom(props: DefaultScreenProps) {
     console.log();
 
     ;(async () => {
-      await ldk.setRefundAddress(ldk.unwrapFirstExternalAddressFromMnemonics());
-      await ldk.updateFeerate(); // so any refund claim upon startup would use adequate fee
-      await ldk.start(ldk.getEntropyHex());
+      try {
+        await ldk.setRefundAddress(ldk.unwrapFirstExternalAddressFromMnemonics());
+        await ldk.updateFeerate(); // so any refund claim upon startup would use adequate fee
+        await ldk.start(ldk.getEntropyHex());
+      } catch (error) {
+        console.error(error.message);
+      }
     })();
   }
 
   const renderPeersList = () => {
     const listItems = (listpeers || []).map((number) =>
         <li key={number}>{number}</li>
+    );
+    return (
+        <ul>{listItems}</ul>
+    );
+  };
+
+  const renderChannelsList = () => {
+    const listItems = (listchannels || []).map((cha) =>
+        <li key={cha.channel_id}>{cha?.counterparty_node_id || '?'} {cha?.is_usable ? '[usable]' : ''} {cha?.is_funding_locked ? '' : '[funding not locked]'}</li>
+
     );
     return (
         <ul>{listItems}</ul>
@@ -97,14 +112,13 @@ export default function Gsom(props: DefaultScreenProps) {
           </div>
           <div className="col">
             channels:<br/>
-            todo<br/>
+            {renderChannelsList()}
             Peers:<br/>
             {renderPeersList()}
             <button type="button" className="btn btn-outline-primary">manage channels</button><br/>
             <button type="button" className="btn btn-outline-primary" onClick={async () => {
               const uri = prompt('input node uri');
               if (!uri) return;
-
 
               const pubkey = uri.split('@')[0];
               const [host, port] = uri.split('@')[1]?.split(':')

@@ -289,7 +289,7 @@ fun start(
         override fun register_tx(txid: ByteArray, script_pubkey: ByteArray) {
             println("ReactNativeLDK: register_tx");
             val params = WritableMap()
-            params.putString("txid", byteArrayToHex(txid))
+            params.putString("txid", byteArrayToHex(txid.reversedArray()))
             params.putString("script_pubkey", byteArrayToHex(script_pubkey))
             storeEvent("$homedir/events_register_tx", params)
             eventsRegisterTx = eventsRegisterTx.plus(params.toString())

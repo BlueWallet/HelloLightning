@@ -364,8 +364,14 @@ export default class Ldk {
   async reconnectPeers() {
     const peers2reconnect = {};
 
-    const listPeers = await this.listPeers();
-    const listChannels = await this.listChannels();
+    let listPeers, listChannels;
+
+    try {
+      listPeers = await this.listPeers();
+      listChannels = await this.listChannels();
+    } catch (_) {
+      return;
+    }
 
     // do we have any channels that need reconnection with peers..?
     for (const channel of listChannels) {

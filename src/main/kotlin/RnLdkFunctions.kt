@@ -89,7 +89,7 @@ fun channel2channelObject(it: ChannelDetails): String {
     channelObject += "\"is_public\":" + it._is_public + ",";
     val fundingTxoTxid = it._funding_txo?._txid;
     if (fundingTxoTxid is ByteArray) {
-        channelObject += "\"funding_txo_txid\":" + "\"" + byteArrayToHex(fundingTxoTxid) + "\",";
+        channelObject += "\"funding_txo_txid\":" + "\"" + byteArrayToHex(fundingTxoTxid.reversedArray()) + "\",";
     }
     val fundingTxoIndex = it._funding_txo?._index;
     if (fundingTxoIndex != null) {
